@@ -18,7 +18,7 @@
 Physijs.scripts.worker = 'js/physijs_worker.js';
 //Physijs.scripts.ammo = '/js/ammo.js';
 
-var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, dome, barrelV, barrelH, box, framesLeft;
+var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, base, dome, barrelV, barrelH, box, bigBase, track, framesLeft;
 var keyboard = new KeyboardState();
 
 function initScene() {
@@ -86,6 +86,20 @@ function initScene() {
     ground.receiveShadow = true;
     scene.add( ground );
 
+
+    track = new THREE.Mesh(//Physijs.CylinderMesh(
+        new THREE.CylinderGeometry( 10.1, 10.1, 8.2, 32 ),
+        new THREE.MeshLambertMaterial({ color: 0x764F13 })//,
+        //0,
+        //{ restitution: .2, friction: .8 }
+    );
+    track.receiveShadow = true;
+    track.castShadow = true;
+    track.rotation.z = 90 * Math.PI/180;
+    track.position.y = -4;    
+
+
+
     // Cannon body
     dome = new THREE.Mesh(//Physijs.SphereMesh(
         new THREE.SphereGeometry( 10, 32, 16 ),
@@ -95,7 +109,7 @@ function initScene() {
     );
     dome.receiveShadow = true;
     dome.castShadow = true;
-    scene.add( dome );
+
 
     // Cannon barrel
     barrelV = new THREE.Mesh(//Physijs.CylinderMesh(
@@ -111,8 +125,43 @@ function initScene() {
     temp.add(barrelV);
     barrelV = temp; 
     barrelH = new THREE.Object3D();
+
+    barrelH.add( track ); //testing
+    track.position.y = 0.1; //testing 
+
     barrelH.add( barrelV );
-    scene.add( barrelH );
+
+
+    base = new THREE.Mesh(//Physijs.CylinderMesh(
+        new THREE.CylinderGeometry( 10, 10, 8, 32 ),
+        new THREE.MeshLambertMaterial({ color: 0x966F33 })//,
+        //0,
+        //{ restitution: .2, friction: .8 }
+    );
+    base.receiveShadow = true;
+    base.castShadow = true;
+    base.position.y = -4;
+    base.add( barrelH ); // Testing 
+    barrelH.position. y = 4;
+    base.add( dome );  // Testing 
+    dome.position.y = 4;
+    scene.add( base );
+    base.position.y = 4;
+
+/*
+    bigBase = new THREE.Mesh(//Physijs.SphereMesh(
+        new THREE.SphereGeometry( 30, 32, 16 ),
+        new THREE.MeshLambertMaterial({ color: 0x966F33 })//,
+        //0,
+        //{ restitution: .2, friction: .8 }
+    );
+    bigBase.receiveShadow = true;
+    bigBase.castShadow = true;
+    bigBase.position.y = -20;
+//    bigBase.add( base ); // Testing 
+    scene.add( bigBase );
+//    base.position.y = 4;
+*/
 
     // Box / projectile
     box = new Physijs.BoxMesh(
@@ -217,6 +266,7 @@ function render() {
     updateHUD( framesLeft );
     renderer.render( scene, camera ); // render the scene
     requestAnimationFrame( render );
+
 }
 
 function pad( pad, str, padRight ) {
