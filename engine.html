@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="css/styles.css" />
 
     <script type="text/javascript" src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/KeyboardState.js"></script>
     <script type="text/javascript" src="js/physi.js"></script>
 
     <script type="text/javascript">
@@ -17,7 +18,8 @@
 Physijs.scripts.worker = 'js/physijs_worker.js';
 //Physijs.scripts.ammo = '/js/ammo.js';
 
-var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, dome, barrel, box, framesLeft;
+var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, dome, barrelV, barrelH, box, framesLeft;
+var keyboard = new KeyboardState();
 
 function initScene() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -96,16 +98,21 @@ function initScene() {
     scene.add( dome );
 
     // Cannon barrel
-    barrel = new THREE.Mesh(//Physijs.CylinderMesh(
-        new THREE.CylinderGeometry( 4, 4, 10, 32 ),
+    barrelV = new THREE.Mesh(//Physijs.CylinderMesh(
+        new THREE.CylinderGeometry( 4, 4, 15, 32 ),
         new THREE.MeshLambertMaterial({ color: 0x111111 })//,
         //0,
         //{ restitution: .2, friction: .8 }
     );
-    barrel.position.set( 0, 15, 0 );
-    barrel.receiveShadow = true;
-    barrel.castShadow = true;
-    scene.add( barrel );
+    barrelV.position.set( 0, 15, 0 );
+    barrelV.receiveShadow = true;
+    barrelV.castShadow = true;
+    var temp = new THREE.Object3D();
+    temp.add(barrelV);
+    barrelV = temp; 
+    barrelH = new THREE.Object3D();
+    barrelH.add( barrelV );
+    scene.add( barrelH );
 
     // Box / projectile
     box = new Physijs.BoxMesh(
@@ -138,11 +145,11 @@ function cameraChase( cam, mesh ) {
 }
 
 function throwBox() {
-    box.setAngularVelocity( new THREE.Vector3(
-                rand( -7, 7 ), rand( -7, 7 ), rand( -7, 7 ) ) );
-    box.setLinearVelocity( new THREE.Vector3(
-            rand( -66, 66 ), rand( 32, 123 ), rand( -66, 66 )) );
-    framesLeft = 400
+    // box.setAngularVelocity( new THREE.Vector3(
+    //             rand( -7, 7 ), rand( -7, 7 ), rand( -7, 7 ) ) );
+    // box.setLinearVelocity( new THREE.Vector3(
+    //         rand( -66, 66 ), rand( 32, 123 ), rand( -66, 66 )) );
+    // framesLeft = 400
 }
 
 function updateShadows( light, mesh ) {
@@ -168,7 +175,36 @@ function changeHTML( id, str ) {
     document.getElementById( id ).innerHTML = str.replace(/ /g, '&nbsp;');
 }
 
+function handleUserInput(){
+
+    keyboard.update();
+    
+    //this is for the cannon's angle to increase
+    if(keyboard.pressed("up") && barrelV.rotation.x > 0){
+        barrelV.rotation.x -= 0.05;
+    }
+    //console.log("handleUserInput 3");
+    if(keyboard.pressed("down") && barrelV.rotation.x < Math.PI/2){
+        barrelV.rotation.x += 0.05;
+    }
+
+    if(keyboard.pressed("left")){
+        console.log("handleUserInput left: " + barrelH.rotation.y);
+        barrelH.rotation.y += 0.05;
+    }
+
+    if(keyboard.pressed("right")){
+        console.log("handleUserInput right: " + barrelH.rotation.y);
+        barrelH.rotation.y -= 0.05;
+    }
+
+    barrelH.__dirtyRotation = true;
+}
+
 function render() {
+
+    handleUserInput();
+
     if (framesLeft-- > 0) {
         box.__dirtyRotation = true;
         box.__dirtyPosition = true;
