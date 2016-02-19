@@ -17,7 +17,7 @@
 Physijs.scripts.worker = 'js/physijs_worker.js';
 //Physijs.scripts.ammo = '/js/ammo.js';
 
-var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, box, framesLeft;
+var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, dome, barrel, box, framesLeft;
 
 function initScene() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -84,7 +84,30 @@ function initScene() {
     ground.receiveShadow = true;
     scene.add( ground );
 
-    // Box
+    // Cannon body
+    dome = new THREE.Mesh(//Physijs.SphereMesh(
+        new THREE.SphereGeometry( 10, 32, 16 ),
+        new THREE.MeshLambertMaterial({ color: 0x966F33 })//,
+        //0,
+        //{ restitution: .2, friction: .8 }
+    );
+    dome.receiveShadow = true;
+    dome.castShadow = true;
+    scene.add( dome );
+
+    // Cannon barrel
+    barrel = new THREE.Mesh(//Physijs.CylinderMesh(
+        new THREE.CylinderGeometry( 4, 4, 10, 32 ),
+        new THREE.MeshLambertMaterial({ color: 0x111111 })//,
+        //0,
+        //{ restitution: .2, friction: .8 }
+    );
+    barrel.position.set( 0, 15, 0 );
+    barrel.receiveShadow = true;
+    barrel.castShadow = true;
+    scene.add( barrel );
+
+    // Box / projectile
     box = new Physijs.BoxMesh(
         new THREE.CubeGeometry( 5, 5, 5 ),
         new THREE.MeshLambertMaterial({ color: 0x888888 }),
