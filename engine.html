@@ -176,7 +176,7 @@ function initScene() {
     dir_light.target = box; // lets us always render shadows around box
 
     box.position.set( 0, 2.5, 0 );
-    throwBox();
+    //throwBox();
     requestAnimationFrame( render );
 }
 
@@ -194,11 +194,11 @@ function cameraChase( cam, mesh ) {
 }
 
 function throwBox() {
-    // box.setAngularVelocity( new THREE.Vector3(
-    //             rand( -7, 7 ), rand( -7, 7 ), rand( -7, 7 ) ) );
-    // box.setLinearVelocity( new THREE.Vector3(
-    //         rand( -66, 66 ), rand( 32, 123 ), rand( -66, 66 )) );
-    // framesLeft = 400
+     box.setAngularVelocity( new THREE.Vector3(
+                 rand( -7, 7 ), rand( -7, 7 ), rand( -7, 7 ) ) );
+     box.setLinearVelocity( new THREE.Vector3(
+             rand( -66, 66 ), rand( 32, 123 ), rand( -66, 66 )) );
+     framesLeft = 400
 }
 
 function updateShadows( light, mesh ) {
@@ -247,6 +247,11 @@ function handleUserInput(){
         barrelH.rotation.y -= 0.05;
     }
 
+    if(keyboard.pressed("space")){
+	throwBox();
+    }
+
+
     barrelH.__dirtyRotation = true;
 }
 
@@ -259,7 +264,7 @@ function render() {
         box.__dirtyPosition = true;
         scene.simulate(); // run physics
     } else {
-        throwBox();
+        ;//throwBox();
     }
     cameraChase( camera, box );
     updateShadows( dir_light, box );
