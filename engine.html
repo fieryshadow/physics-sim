@@ -9,6 +9,7 @@
 
     <script type="text/javascript" src="js/three.min.js"></script>
     <script type="text/javascript" src="js/KeyboardState.js"></script>
+    <script type="text/javascript" src="js/ThreeCSG.js"></script>
     <script type="text/javascript" src="js/physi.js"></script>
 
     <script type="text/javascript">
@@ -16,38 +17,38 @@
 'use strict';
 
 Physijs.scripts.worker = 'js/physijs_worker.js';
-//Physijs.scripts.ammo = '/js/ammo.js';
 
-var renderer, scene, camera, am_light, dir_light, loader, ground_material, ground, base, dome, barrelV, barrelH, box, bigBase, track, framesLeft;
+var renderer, scene, camera, am_light, dir_light, loader, ground_material,
+    ground, barrelV, barrelH, box;
 var keyboard = new KeyboardState();
 
 function initScene() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setClearColor( 0xefd1b5 ); // reddish sky
-    //renderer.setClearColor( 0x9999ff ); // blue
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.getElementById( 'viewport' ).appendChild( renderer.domElement );
+    renderer.setClearColor(0xefd1b5); // reddish sky
+    //renderer.setClearColor(0x9999ff); // blue
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('viewport').appendChild(renderer.domElement);
 
     scene = new Physijs.Scene;
-    scene.setGravity( new THREE.Vector3( 0, -30, 0 ) );
-    scene.fog = new THREE.FogExp2( 0xefd1b5, 0.0025 ); // reddish sky
-    //scene.fog = new THREE.FogExp2( 0x9999ff, 0.001 ); // blue
+    scene.setGravity(new THREE.Vector3(0, -32, 0));
+    scene.fog = new THREE.FogExp2(0xefd1b5, 0.0025); // reddish sky
+    //scene.fog = new THREE.FogExp2(0x9999ff, 0.001); // blue
 
     camera = new THREE.PerspectiveCamera(
-        35, window.innerWidth / window.innerHeight, 1, 1000 );
+        35, window.innerWidth / window.innerHeight, 1, 1000);
     // note: camera position is updated every frame
-    camera.position.set( 80, 60, 90 );
-    scene.add( camera );
+    camera.position.set(80, 60, 90);
+    scene.add(camera);
 
     // ambient light
-    am_light = new THREE.AmbientLight( 0x444444 ); // gray
-    scene.add( am_light );
+    am_light = new THREE.AmbientLight(0x444444); // gray
+    scene.add(am_light);
 
     // directional light
-    dir_light = new THREE.DirectionalLight( 0xFFFFFF );
-    dir_light.position.set( 200, 300, -50 );
-    dir_light.target.position.copy( scene.position );
+    dir_light = new THREE.DirectionalLight(0xFFFFFF);
+    dir_light.position.set(200, 300, -50);
+    dir_light.target.position.copy(scene.position);
     dir_light.castShadow = true;
     dir_light.shadowCameraLeft = -500;
     dir_light.shadowCameraTop = -500;
@@ -58,228 +59,196 @@ function initScene() {
     dir_light.shadowBias = -.001;
     dir_light.shadowMapWidth = dir_light.shadowMapHeight = 2048;
     dir_light.shadowDarkness = .85;
-    scene.add( dir_light );
+    scene.add(dir_light);
 
     // Loader
     loader = new THREE.TextureLoader();
 
     // Materials
     ground_material = Physijs.createMaterial(
-        new THREE.MeshLambertMaterial(
-            { map: loader.load( 'images/grass.png' )} ),
+        new THREE.MeshLambertMaterial({ map: loader.load('images/grass.png') }),
         .9, // high friction
         .2 // low restitution
     );
     ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-    ground_material.map.repeat.set( 600, 600 );
+    ground_material.map.repeat.set(600, 600);
 
     renderer.shadowMap.enabled = true;
 
     // Ground
     ground = new Physijs.BoxMesh(
-        new THREE.BoxGeometry( 20000, 1, 20000 ),
+        new THREE.BoxGeometry(20000, 1, 20000),
         ground_material,
         0, // mass
         { restitution: .2, friction: .8 }
     );
-    ground.position.y = -.5;
+    ground.position.y = -.5; // top of surface is at 0
     ground.receiveShadow = true;
-    scene.add( ground );
+    scene.add(ground);
 
+    makeCannon();
 
-    track = new THREE.Mesh(//Physijs.CylinderMesh(
-        new THREE.CylinderGeometry( 10.1, 10.1, 8.2, 32 ),
-        new THREE.MeshLambertMaterial({ color: 0x764F13 })//,
-        //0,
-        //{ restitution: .2, friction: .8 }
-    );
-    track.receiveShadow = true;
-    track.castShadow = true;
-    track.rotation.z = 90 * Math.PI/180;
-    track.position.y = -4;    
-
-
-
-    // Cannon body
-    dome = new THREE.Mesh(//Physijs.SphereMesh(
-        new THREE.SphereGeometry( 10, 32, 16 ),
-        new THREE.MeshLambertMaterial({ color: 0x966F33 })//,
-        //0,
-        //{ restitution: .2, friction: .8 }
-    );
-    dome.receiveShadow = true;
-    dome.castShadow = true;
-
-
-    // Cannon barrel
-    barrelV = new THREE.Mesh(//Physijs.CylinderMesh(
-        new THREE.CylinderGeometry( 4, 4, 15, 32 ),
-        new THREE.MeshLambertMaterial({ color: 0x111111 })//,
-        //0,
-        //{ restitution: .2, friction: .8 }
-    );
-    barrelV.position.set( 0, 15, 0 );
-    barrelV.receiveShadow = true;
-    barrelV.castShadow = true;
-    var temp = new THREE.Object3D();
-    temp.add(barrelV);
-    barrelV = temp; 
-    barrelH = new THREE.Object3D();
-
-    barrelH.add( track ); //testing
-    track.position.y = 0.1; //testing 
-
-    barrelH.add( barrelV );
-
-
-    base = new THREE.Mesh(//Physijs.CylinderMesh(
-        new THREE.CylinderGeometry( 10, 10, 8, 32 ),
-        new THREE.MeshLambertMaterial({ color: 0x966F33 })//,
-        //0,
-        //{ restitution: .2, friction: .8 }
-    );
-    base.receiveShadow = true;
-    base.castShadow = true;
-    base.position.y = -4;
-    base.add( barrelH ); // Testing 
-    barrelH.position. y = 4;
-    base.add( dome );  // Testing 
-    dome.position.y = 4;
-    scene.add( base );
-    base.position.y = 4;
-
-/*
-    bigBase = new THREE.Mesh(//Physijs.SphereMesh(
-        new THREE.SphereGeometry( 30, 32, 16 ),
-        new THREE.MeshLambertMaterial({ color: 0x966F33 })//,
-        //0,
-        //{ restitution: .2, friction: .8 }
-    );
-    bigBase.receiveShadow = true;
-    bigBase.castShadow = true;
-    bigBase.position.y = -20;
-//    bigBase.add( base ); // Testing 
-    scene.add( bigBase );
-//    base.position.y = 4;
-*/
-
-    // Box / projectile
+    // Projectile
     box = new Physijs.BoxMesh(
-        new THREE.CubeGeometry( 5, 5, 5 ),
+        new THREE.CubeGeometry(5, 5, 5),
         new THREE.MeshLambertMaterial({ color: 0x888888 }),
         55, // mass
         { restitution: .9, friction: .1 }
     );
+    box.position.y = 2.5; // prop it on top of the ground
     box.receiveShadow = true;
     box.castShadow = true;
-    scene.add( box );
-    dir_light.target = box; // lets us always render shadows around box
+    scene.add(box);
+    dir_light.target = box; // allows us to always render shadows around box
 
-    box.position.set( 0, 2.5, 0 );
-    //throwBox();
-    requestAnimationFrame( render );
+    requestAnimationFrame(render);
 }
 
-function rand( min, max, interval ) {
-    if (typeof( interval ) === 'undefined') interval = 1;
-    var r = Math.floor( Math.random() * (max - min + interval) / interval );
+function makeCannon() {
+    var track = new THREE.Mesh(
+        new THREE.CylinderGeometry(10.1, 10.1, 8.2, 32),
+        new THREE.MeshLambertMaterial({ color: 0x764F13 })
+    );
+    track.receiveShadow = true;
+    track.castShadow = true;
+    track.rotation.z = Math.PI/2;
+    track.position.y = 4.1;
+
+    var dome = new THREE.Mesh(
+        new THREE.SphereGeometry(10, 32, 16),
+        new THREE.MeshLambertMaterial({ color: 0x966F33 })
+    );
+    dome.position.y = 4;
+    dome.receiveShadow = true;
+    dome.castShadow = true;
+
+    // barrel
+    var smallCylinderGeom = new THREE.CylinderGeometry(4, 4, 15, 32, 4);
+    var largeCylinderGeom = new THREE.CylinderGeometry(5, 5, 15, 32, 4);
+    var smallCylinderBSP = new ThreeBSP(smallCylinderGeom);
+    var largeCylinderBSP = new ThreeBSP(largeCylinderGeom);
+    var intersectionBSP = largeCylinderBSP.subtract(smallCylinderBSP);
+    var barrelMaterial = new THREE.MeshLambertMaterial({ color: 0x111111 });
+    var hollowCylinder = intersectionBSP.toMesh( barrelMaterial );
+    hollowCylinder.position.y = 15;
+    hollowCylinder.receiveShadow = true;
+    hollowCylinder.castShadow = true;
+    barrelV = new THREE.Object3D();
+    barrelV.add(hollowCylinder);
+    barrelV.position.y = 4; // keep rotation radius - but moved to right place
+    barrelH = new THREE.Object3D();
+    barrelH.add(track);
+    barrelH.add(barrelV);
+
+    var base = new THREE.Mesh(
+        new THREE.CylinderGeometry(10, 10, 8, 32),
+        new THREE.MeshLambertMaterial({ color: 0x966F33 })
+    );
+    base.position.y = 4;
+    base.receiveShadow = true;
+    base.castShadow = true;
+    base.add(barrelH);
+    base.add(dome);
+    scene.add(base);
+}
+
+function rand(min, max, interval) {
+    if (typeof(interval) === 'undefined') interval = 1;
+    var r = Math.floor(Math.random() * (max - min + interval) / interval);
     return r * interval + min;
 }
 
-function cameraChase( cam, mesh ) {
-    var relativeOffset = new THREE.Vector3( 80, 60, 90 );
-    var cameraOffset = relativeOffset.add( mesh.position );
-    cam.position.set( cameraOffset.x, cameraOffset.y, cameraOffset.z );
-    cam.lookAt( mesh.position );
+function cameraChase(cam, mesh) {
+    var relativeOffset = new THREE.Vector3(80, 60, 90);
+    var cameraOffset = relativeOffset.add(mesh.position);
+    cam.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+    cam.lookAt(mesh.position);
 }
 
-function throwBox() {
-     box.setAngularVelocity( new THREE.Vector3(
-                 rand( -7, 7 ), rand( -7, 7 ), rand( -7, 7 ) ) );
-     box.setLinearVelocity( new THREE.Vector3(
-             rand( -66, 66 ), rand( 32, 123 ), rand( -66, 66 )) );
-     framesLeft = 400
+function tossBox() {
+    box.setAngularVelocity(new THREE.Vector3(
+                rand(-7, 7), rand(-7, 7), rand(-7, 7)));
+    box.setLinearVelocity(new THREE.Vector3(
+                rand(-66, 66), rand(32, 123), rand(-66, 66)));
 }
 
-function updateShadows( light, mesh ) {
-    var relativeOffset = new THREE.Vector3( 200, 300, -50 );
-    var newPos = relativeOffset.add( mesh.position );
-    light.position.set( newPos.x, newPos.y, newPos.z );
+function shootBox() {
+    box.position.set(0, 8, 0);
+    box.setAngularVelocity(new THREE.Vector3(
+                rand(-7, 7), rand(-7, 7), rand(-7, 7)));
+    var speed = 140;
+    var phi = barrelV.rotation.x;
+    var theta = barrelH.rotation.y;
+    var x = speed * Math.sin(phi) * Math.sin(theta);
+    var y = speed * Math.cos(phi); // up
+    var z = speed * Math.sin(phi) * Math.cos(theta);
+    box.setLinearVelocity(new THREE.Vector3(x, y, z));
+}
+
+function updateShadows(light, mesh) {
+    var relativeOffset = new THREE.Vector3(200, 300, -50);
+    var newPos = relativeOffset.add(mesh.position);
+    light.position.set(newPos.x, newPos.y, newPos.z);
 }
 
 function updateHUD() {
     var str;
-    str = 'Throwing box in: ' + pad( '   ', framesLeft ) + ' frames';
-    changeHTML( 'frames', str );
-    str = 'Longitude: ' + pad( '    ', Math.round( box.position.x ) ) + 'm';
-    changeHTML( 'longitude', str );
-    str = '  Latitude: ' + pad( '    ', Math.round( box.position.z ) ) + 'm';
-    changeHTML( 'latitude', str );
-    var alt = Math.round( box.position.y - box.geometry.parameters.height/2 );
-    str = '  Altitude: ' + pad( '    ', alt ) + 'm';
-    changeHTML( 'altitude', str );
+    str = 'Use the arrow keys to position cannon and spacebar to shoot.';
+    changeHTML('info', str);
+    str = 'Longitude: ' + pad('    ', Math.round(box.position.x)) + 'ft';
+    changeHTML('longitude', str);
+    str = '  Latitude: ' + pad('    ', Math.round(box.position.z)) + 'ft';
+    changeHTML('latitude', str);
+    var alt = Math.round(box.position.y - box.geometry.parameters.height/2);
+    str = '  Altitude: ' + pad('    ', alt) + 'ft';
+    changeHTML('altitude', str);
 }
 
-function changeHTML( id, str ) {
-    document.getElementById( id ).innerHTML = str.replace(/ /g, '&nbsp;');
+function changeHTML(id, str) {
+    document.getElementById(id).innerHTML = str.replace(/ /g, '&nbsp;');
 }
 
-function handleUserInput(){
-
+function handleUserInput() {
     keyboard.update();
-    
-    //this is for the cannon's angle to increase
-    if(keyboard.pressed("up") && barrelV.rotation.x > 0){
-        barrelV.rotation.x -= 0.05;
-    }
-    //console.log("handleUserInput 3");
-    if(keyboard.pressed("down") && barrelV.rotation.x < Math.PI/2){
+    barrelH.__dirtyRotation = true;
+
+    if (keyboard.pressed('up') && barrelV.rotation.x < Math.PI/2) {
         barrelV.rotation.x += 0.05;
     }
-
-    if(keyboard.pressed("left")){
-        console.log("handleUserInput left: " + barrelH.rotation.y);
+    if (keyboard.pressed('down') && barrelV.rotation.x > 0) {
+        barrelV.rotation.x -= 0.05;
+    }
+    if (keyboard.pressed('left')) {
         barrelH.rotation.y += 0.05;
     }
-
-    if(keyboard.pressed("right")){
-        console.log("handleUserInput right: " + barrelH.rotation.y);
+    if (keyboard.pressed('right')) {
         barrelH.rotation.y -= 0.05;
     }
 
-    if(keyboard.pressed("space")){
-	throwBox();
+    if (keyboard.pressed('space')) {
+        //tossBox();
+        shootBox();
     }
-
-
-    barrelH.__dirtyRotation = true;
 }
 
 function render() {
-
     handleUserInput();
-
-    if (framesLeft-- > 0) {
-        box.__dirtyRotation = true;
-        box.__dirtyPosition = true;
-        scene.simulate(); // run physics
-    } else {
-        ;//throwBox();
-    }
-    cameraChase( camera, box );
-    updateShadows( dir_light, box );
-    updateHUD( framesLeft );
-    renderer.render( scene, camera ); // render the scene
-    requestAnimationFrame( render );
-
+    box.__dirtyRotation = true;
+    box.__dirtyPosition = true;
+    scene.simulate();
+    cameraChase(camera, box);
+    updateShadows(dir_light, box);
+    updateHUD();
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
 }
 
-function pad( pad, str, padRight ) {
+function pad(pad, str, padRight) {
   if (typeof str === 'undefined') return pad;
   if (padRight) {
-      return (str + pad).substring( 0, pad.length );
+      return (str + pad).substring(0, pad.length);
   } else {
-      return (pad + str).slice( -pad.length );
+      return (pad + str).slice(-pad.length);
   }
 }
 
@@ -292,7 +261,7 @@ window.onload = initScene;
     <div id="viewport"></div>
     <div id="hud" style="position:absolute;left:10px;top:10px;background:rgba(0,0,0,0.3);">
         <div id="displays" style="position:relative;margin:3px;color:white;">
-            <div id="frames" style="top:0px"></div>
+            <div id="info" style="top:0px"></div>
             <div id="longitude" style="top:10px"></div>
             <div id="latitude" style="top:20px"></div>
             <div id="altitude" style="top:30px"></div>
