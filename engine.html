@@ -23,6 +23,8 @@ var renderer, scene, camera, am_light, dir_light, loader, ground_material,
 var keyboard = new KeyboardState();
 
 function initScene() {
+    showMessage('Some sort of test objectives...');
+
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setClearColor(0xefd1b5); // reddish sky
     //renderer.setClearColor(0x9999ff); // blue
@@ -229,6 +231,26 @@ function handleUserInput() {
         //tossBox();
         shootBox();
     }
+
+    if (keyboard.down('enter')) {
+        toggleMessage();
+    }
+}
+
+function showMessage(str) {
+    changeHTML('popupP', str);
+    document.getElementById('popup').style.display == 'block';
+    document.getElementById('popupP').style.display == 'block';
+}
+
+function toggleMessage() {
+    if (document.getElementById('popup').style.display == 'none') {
+        document.getElementById('popup').style.display = 'block';
+        document.getElementById('popupP').style.display = 'block';
+    } else {
+        document.getElementById('popup').style.display = 'none';
+        document.getElementById('popupP').style.display = 'none';
+    }
 }
 
 function render() {
@@ -266,6 +288,9 @@ window.onload = initScene;
             <div id="latitude" style="top:20px"></div>
             <div id="altitude" style="top:30px"></div>
         </div>
+    </div>
+    <div id="popup" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:800px;z-index:3;height:400px;color:white;background:rgba(0,0,0,0.7);">
+        <div id="popupP" style="position:relative;margin:10px 10px 10px 10px;"></div>
     </div>
 </body>
 </html>
