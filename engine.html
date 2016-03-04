@@ -10,6 +10,7 @@
     <script type="text/javascript" src="js/three.min.js"></script>
     <script type="text/javascript" src="js/KeyboardState.js"></script>
     <script type="text/javascript" src="js/ThreeCSG.js"></script>
+    <script type="text/javascript" src="js/dat.gui.min.js"></script>
     <script type="text/javascript" src="js/physi.js"></script>
 
     <script type="text/javascript">
@@ -100,8 +101,11 @@ function initScene() {
     box.position.y = 2.5; // prop it on top of the ground
     box.receiveShadow = true;
     box.castShadow = true;
+    box.launchVelocity = 10;
     scene.add(box);
     dir_light.target = box; // allows us to always render shadows around box
+
+    makeGUI();
 
     requestAnimationFrame(render);
 }
@@ -175,10 +179,25 @@ function tossBox() {
 }
 
 function shootBox() {
+
+    // Projectile
+    box = new Physijs.BoxMesh(
+        new THREE.CubeGeometry(5, 5, 5),
+        new THREE.MeshLambertMaterial({ color: 0x888888 }),
+        55, // mass
+        { restitution: .9, friction: .1 }
+    );
+    box.position.y = 2.5; // prop it on top of the ground
+    box.receiveShadow = true;
+    box.castShadow = true;
+    scene.add(box);
+    dir_light.target = box; // allows us to always render shadows around box
+
+
     box.position.set(0, 8, 0);
     box.setAngularVelocity(new THREE.Vector3(
                 rand(-7, 7), rand(-7, 7), rand(-7, 7)));
-    var speed = 140;
+    var speed = box.launchVelocity;
     var phi = barrelV.rotation.x;
     var theta = barrelH.rotation.y;
     var x = speed * Math.sin(phi) * Math.sin(theta);
@@ -251,6 +270,35 @@ function toggleMessage() {
         document.getElementById('popup').style.display = 'none';
         document.getElementById('popupP').style.display = 'none';
     }
+}
+
+function makeGUI(){
+
+    var params = {
+                    velocity: 50.0,
+                    verticalBarrellAngle: 0.0,
+                    turretRotationAngle: 0.0,
+                };
+
+    var gui = new dat.GUI();
+
+    var sceneGui = gui.addFolder( 'Details' );
+
+                sceneGui.add( params, 'velocity', 0.0, 200.0 ).name("Velocity").onChange(function (value) {
+                    box.launchVelocity = value
+                });
+                sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI).name("Altitude Angle")
+                .onChange(function (value){
+                    barrelH.rotation.y = value;
+                    barrelH.__dirtyRotation = true; 
+                });
+                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ).name("Altitude Angle")
+                .onChange(function (value){
+                    barrelV.rotation.x = value;
+                    barrelV.__dirtyRotation = true; 
+                });
+                gui.open();
+
 }
 
 function render() {
