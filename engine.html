@@ -19,7 +19,8 @@
 Physijs.scripts.worker = 'js/physijs_worker.js';
 
 var renderer, scene, camera, am_light, dir_light, loader, ground_material,
-    ground, barrelV, barrelH, box;
+    ground, barrelV, barrelH, box, target;
+var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
 
 function initScene() {
@@ -100,8 +101,30 @@ function initScene() {
     box.position.y = 2.5; // prop it on top of the ground
     box.receiveShadow = true;
     box.castShadow = true;
+    box.the_projectile = true;
     scene.add(box);
     dir_light.target = box; // allows us to always render shadows around box
+
+    target = new Physijs.BoxMesh(
+        new THREE.BoxGeometry(15, .1, 15),
+        new THREE.MeshLambertMaterial({ color: 0xFF2222 }),
+        0,
+        { restitution: 0, friction: 1 }
+    );
+    target.position.x = -rand(90, 190);
+    target.position.z = -rand(90, 190);
+    target.receiveShadow = true;
+    target.castShadow = true;
+    scene.add(target);
+    target.addEventListener(
+        'collision',
+        function(other_obj, rel_vel, rel_rot, contact_normal) {
+            if (other_obj.the_projectile) {
+                showMessage('GAME OVER');
+                GAME_RUNNING = false;
+            }
+        }
+    );
 
     requestAnimationFrame(render);
 }
@@ -228,7 +251,7 @@ function handleUserInput() {
     }
 
     if (keyboard.pressed('space')) {
-        //tossBox();
+        GAME_RUNNING = true;
         shootBox();
     }
 
@@ -239,8 +262,10 @@ function handleUserInput() {
 
 function showMessage(str) {
     changeHTML('popupP', str);
-    document.getElementById('popup').style.display == 'block';
-    document.getElementById('popupP').style.display == 'block';
+    //console.log('here');
+    //console.log(document.getElementById('popup').style.display)
+    document.getElementById('popup').style.display = 'block';
+    document.getElementById('popupP').style.display = 'block';
 }
 
 function toggleMessage() {
@@ -255,12 +280,14 @@ function toggleMessage() {
 
 function render() {
     handleUserInput();
-    box.__dirtyRotation = true;
-    box.__dirtyPosition = true;
-    scene.simulate();
-    cameraChase(camera, box);
-    updateShadows(dir_light, box);
-    updateHUD();
+    if (GAME_RUNNING) {
+        box.__dirtyRotation = true;
+        box.__dirtyPosition = true;
+        scene.simulate();
+        cameraChase(camera, box);
+        updateShadows(dir_light, box);
+        updateHUD();
+    }
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }
