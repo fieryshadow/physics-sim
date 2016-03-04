@@ -308,7 +308,7 @@ function makeGUI(){
 
     var sceneGui = gui.addFolder( 'Details' );
 
-                sceneGui.add( params, 'velocity', 0.0, 200.0 ).name("Velocity").onChange(function (value) {
+                sceneGui.add( params, 'velocity', 0.0, 200.0 ).name("Launch Velocity").onChange(function (value) {
                     box.launchVelocity = value
                 });
                 sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI).name("Altitude Angle")
@@ -316,7 +316,7 @@ function makeGUI(){
                     barrelH.rotation.y = value;
                     barrelH.__dirtyRotation = true; 
                 });
-                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ).name("Altitude Angle")
+                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ).name("Turret Rotation Angle")
                 .onChange(function (value){
                     barrelV.rotation.x = value;
                     barrelV.__dirtyRotation = true; 
