@@ -141,7 +141,8 @@ showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
         'collision',
         function(other_obj, rel_vel, rel_rot, contact_normal) {
             if (other_obj.the_projectile) {
-                showMessage('GAME OVER');
+		level++;
+		showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);             
                 GAME_RUNNING = false;
             }
         }
