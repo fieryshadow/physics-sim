@@ -23,9 +23,28 @@ var renderer, scene, camera, am_light, dir_light, loader, ground_material,
     ground, barrelV, barrelH, box, target;
 var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
+var objectives = [
+"Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
+"1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
+"2. Think of the map as a grid, the cannon is at the position (30,50) and the target is at position (100, 70).<br>Set the altitude of the cannon to (30 degrees) to shoot the correct distance. <br>Figure out the azimuth angle needed to hit the target.",
+"3. Adjusting the altitude angle of the cannon to (60 degrees) will send the projectile flying <br>for (6 seconds) when the cannon launches the projectile at a velocity of (30 ft/s). <br>Set the Azimuth to (0 degrees).<br>At what distance should the target be set so that the projectile will hit it?<br>- Set the azimuth of the cannon to (0 degrees), to aim at the target<br>- Calculate the position distance of the target <br>- Input the distance and shoot",
+"4. The target is located (X) ft from the cannon in a direction of (Y) degrees. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 30 ft/s)<br><br>Instructions:<br>- Set the azimuth of the cannon to (Y) degrees, to aim at the target<br>- Calculate the altitude angle needed for the projectile to hit the target, Click here to learn the physics",
+"5. The target is located (X) ft horizontally from the cannon in a direction of (Y) degrees, at a height of (20 ft). Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 30 ft/s)<br><br>Instructions:<br>- Set the azimuth of the cannon to (Y) degrees, to aim at the target<br>- Calculate the altitude angle needed for the projectile to hit the target"
+];
+
+var instructions = [
+"Press Enter to see your first objective.", 
+"Azimuth = The angle describing the direction of the cannon like north, south, or somewhere in between <br>Altitude = The angle describing how high the cannon is aiming, between vertical and horizontal <br><br>Math: <br> theta = atan(y/x) <br> y = north/south distance to the target <br> x = west/east distance to the target <br><br>*theta is the azimuth angle<br><br><br><br>Press Enter to show or hide this text",
+"Instructions:<br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br><br> y = (y-target - y-cannon) <br> *y = north/south distance to the target<br> *y-target = y coordinate of the target ( __, 70 )<br> *y-cannon = y coordinate of the cannon ( __, 50 )<br><br> x = (x-target - x-cannon)<br> *x = west/east distance to the target<br> *x-target = x coordinate of the target ( 100, __ )<br> *x-cannon = x coordinate of the cannon ( 30, __ )<br><br> theta = atan(y/x)<br>*theta = azimuth angle",
+"Physics<br><br>v(x) = v * cos(theta)<br> *v(x) = horizontal component of the velocity of the projectile<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br><br>d = v(x) * t<br> *d = distance from the cannon to the target<br> *v(x) = horizontal velocity of the projectile when launched<br> *t = time that passes from launch until collision",
+"Physics <br><br>Solve for t (theta will still be unknown)<br><br> s(x) = v * cos(theta) * t<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br> *s(x) = horizontal distance from the cannon to the target <br> *t = time that passes from launch until collision<br><br><br>Substitute your answer for the t in this equation <br><br>-16.1 * t^2 + v * sin(theta) * t = 0<br> *-16.1 = 1/2 the acceleration due to gravity (ft/s^2)",
+"Physics <br><br>(It is almost the same as the last problem, except the second equation is not equal to 0)<br>Solve for t (theta will still be unknown)<br><br> s(x) = v * cos(theta) * t<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br> *s(x) = horizontal distance from the cannon to the target <br> *t = time that passes from launch until collision<br><br><br>Substitute your answer for the t in this equation <br><br>-16.1 * t^2 + v * sin(theta) * t = (20ft)<br> *-16.1 = 1/2 the acceleration due to gravity (ft/s^2)"
+];
+
+var level = 0;
 
 function initScene() {
-    showMessage('Some sort of test objectives...');
+showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setClearColor(0xefd1b5); // reddish sky
@@ -236,7 +255,7 @@ function updateShadows(light, mesh) {
 
 function updateHUD() {
     var str;
-    str = 'Use the arrow keys to position cannon and spacebar to shoot.';
+    str = 'Use the arrow keys to position cannon and spacebar to shoot.<br>Press enter to show or hide the menu.';
     changeHTML('info', str);
     str = 'Longitude: ' + pad('    ', Math.round(box.position.x)) + 'ft';
     changeHTML('longitude', str);
@@ -274,7 +293,13 @@ function handleUserInput() {
     }
 
     if (keyboard.down('enter')) {
-        toggleMessage();
+        if (level == 0) {
+	  level = 1;
+	  showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
+	}
+        else {
+          toggleMessage();
+	}
     }
 }
 
