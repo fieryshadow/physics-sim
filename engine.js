@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Physics Sim</title>
-
-    <link rel="stylesheet" type="text/css" href="css/styles.css" />
-
-    <script type="text/javascript" src="js/three.min.js"></script>
-    <script type="text/javascript" src="js/KeyboardState.js"></script>
-    <script type="text/javascript" src="js/OrbitControls.js"></script>
-    <script type="text/javascript" src="js/ThreeCSG.js"></script>
-    <script type="text/javascript" src="js/dat.gui.min.js"></script>
-    <script type="text/javascript" src="js/physi.js"></script>
-
-    <script type="text/javascript">
-
 'use strict';
 
 Physijs.scripts.worker = 'js/physijs_worker.js';
@@ -497,22 +481,3 @@ function pad(pad, str, padRight) {
 }
 
 window.onload = initScene;
-
-    </script>
-</head>
-
-<body>
-    <div id="viewport"></div>
-    <div id="hud" style="position:absolute;left:10px;top:10px;background:rgba(0,0,0,0.3);">
-        <div id="displays" style="position:relative;margin:3px;color:white;">
-            <div id="info" style="top:0px"></div>
-            <div id="longitude" style="top:10px"></div>
-            <div id="latitude" style="top:20px"></div>
-            <div id="altitude" style="top:30px"></div>
-        </div>
-    </div>
-    <div id="popup" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:800px;z-index:3;height:400px;color:white;background:rgba(0,0,0,0.7);">
-        <div id="popupP" style="position:relative;margin:10px 10px 10px 10px;"></div>
-    </div>
-</body>
-</html>
