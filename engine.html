@@ -24,7 +24,7 @@ var renderer, scene, camera, am_light, dir_light, loader, ground_material,
 var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
 var objectives = [
-"Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
+"Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.<br> <br>Test purposes:<br> <br>Okay guys I did the physics for the first problem.<br>For the first target at position 60m, 80m, 0m set the following values:<br>Azimuth: 0.927rad<br>Altitude: 0.785rad<br>Velocity: 31.30 m/s<br> That should hit the target dead center.",
 "1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
 "2. Think of the map as a grid, the cannon is at the position (30,50) and the target is at position (100, 70).<br>Set the altitude of the cannon to (30 degrees) to shoot the correct distance. <br>Figure out the azimuth angle needed to hit the target.",
 "3. Adjusting the altitude angle of the cannon to (60 degrees) will send the projectile flying <br>for (6 seconds) when the cannon launches the projectile at a velocity of (30 ft/s). <br>Set the Azimuth to (0 degrees).<br>At what distance should the target be set so that the projectile will hit it?<br>- Set the azimuth of the cannon to (0 degrees), to aim at the target<br>- Calculate the position distance of the target <br>- Input the distance and shoot",
@@ -54,7 +54,7 @@ showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
     document.getElementById('viewport').appendChild(renderer.domElement);
 
     scene = new Physijs.Scene;
-    scene.setGravity(new THREE.Vector3(0, -32, 0));
+    scene.setGravity(new THREE.Vector3(0, -9.8, 0));
     scene.fog = new THREE.FogExp2(0xefd1b5, 0.0025); // reddish sky
     //scene.fog = new THREE.FogExp2(0x9999ff, 0.001); // blue
 
@@ -146,13 +146,13 @@ function makeProjectile(){
 function makeTarget(){
     // Target
     target = new Physijs.BoxMesh(
-        new THREE.BoxGeometry(15, .1, 15),
+        new THREE.BoxGeometry(45, .1, 45),
         new THREE.MeshLambertMaterial({ map: loader.load('images/target.jpeg') }),
         0,
         { restitution: 0, friction: 1 }
     );
-    target.position.x = -rand(90, 190);
-    target.position.z = -rand(90, 190);
+    target.position.x = 80; //rand(90, 190);
+    target.position.z = 60; //rand(90, 190);
     target.receiveShadow = true;
     target.castShadow = true;
     scene.add(target);
@@ -187,8 +187,9 @@ function makeFloorCompass(){
             0,
             { restitution: 0, friction: 1 }
         );
-        compass.position.x = 30;
-        compass.position.z = 30;
+        compass.position.x = -30;
+        compass.position.z = -30;
+        compass.rotation.y = -Math.PI/2;
         compass.receiveShadow = true;
         scene.add(compass);
     }
@@ -267,7 +268,7 @@ function rand(min, max, interval) {
 }
 
 function cameraChase(cam, mesh) {
-    var relativeOffset = new THREE.Vector3(80, 60, 90);
+    var relativeOffset = new THREE.Vector3(-80, 60, -90);
     var cameraOffset = relativeOffset.add(mesh.position);
     cam.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
     cam.lookAt(mesh.position);
@@ -335,6 +336,7 @@ function handleUserInput() {
     }
 
     if (keyboard.pressed('space')) {
+
         GAME_RUNNING = true;
         shootBox();
     }
@@ -371,24 +373,24 @@ function toggleMessage() {
 function makeGUI(){
 
     var params = {
-                    velocity: 100.0,
-                    verticalBarrellAngle: 0.0,
-                    turretRotationAngle: 0.0,
+                    velocity: 31.301,
+                    verticalBarrellAngle: 0.927,
+                    turretRotationAngle: 0.785,
                 };
 
     var gui = new dat.GUI();
 
     var sceneGui = gui.addFolder( 'Details' );
 
-                sceneGui.add( params, 'velocity', 0.0, 200.0 ).name("Launch Velocity").onChange(function (value) {
+                sceneGui.add( params, 'velocity', 0.00, 200.0, 31.30).name("Launch Velocity").onChange(function (value) {
                     box.launchVelocity = value
                 });
-                sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI).name("Altitude Angle")
+                sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI, 0.785).name("Azimuth Angle")
                 .onChange(function (value){
                     barrelH.rotation.y = value;
                     barrelH.__dirtyRotation = true; 
                 });
-                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ).name("Turret Rotation Angle")
+                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ,0.927).name("Altitude Angle")
                 .onChange(function (value){
                     barrelV.rotation.x = value;
                     barrelV.__dirtyRotation = true; 
@@ -412,6 +414,7 @@ function render() {
 }
 
 function pad(pad, str, padRight) {
+
   if (typeof str === 'undefined') return pad;
   if (padRight) {
       return (str + pad).substring(0, pad.length);
