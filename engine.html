@@ -9,6 +9,7 @@
 
     <script type="text/javascript" src="js/three.min.js"></script>
     <script type="text/javascript" src="js/KeyboardState.js"></script>
+    <script type="text/javascript" src="js/OrbitControls.js"></script>
     <script type="text/javascript" src="js/ThreeCSG.js"></script>
     <script type="text/javascript" src="js/dat.gui.min.js"></script>
     <script type="text/javascript" src="js/physi.js"></script>
@@ -23,6 +24,7 @@ var renderer, scene, camera, am_light, dir_light, loader, ground_material,
     ground, barrelV, barrelH, box, target;
 var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
+var controls, orbCam;
 var objectives = [
 "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.<br> <br>Test purposes:<br> <br>Okay guys I did the physics for the first problem.<br>For the first target at position 60m, 80m, 0m set the following values:<br>Azimuth: 0.927rad<br>Altitude: 0.785rad<br>Velocity: 31.30 m/s<br> That should hit the target dead center.",
 "1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
@@ -63,6 +65,12 @@ showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
     // note: camera position is updated every frame
     camera.position.set(80, 60, 90);
     scene.add(camera);
+
+    // for allowing camera rotation via mouse
+    orbCam = new THREE.PerspectiveCamera(
+        35, window.innerWidth / window.innerHeight, 1, 1000);
+    orbCam.position.set(-80, 60, -90);
+    controls = new THREE.OrbitControls(orbCam, renderer.domElement);
 
     // ambient light
     am_light = new THREE.AmbientLight(0x444444); // gray
@@ -268,8 +276,7 @@ function rand(min, max, interval) {
 }
 
 function cameraChase(cam, mesh) {
-    var relativeOffset = new THREE.Vector3(-80, 60, -90);
-    var cameraOffset = relativeOffset.add(mesh.position);
+    var cameraOffset = orbCam.position.clone().add(mesh.position);
     cam.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
     cam.lookAt(mesh.position);
 }
@@ -409,6 +416,7 @@ function render() {
         updateShadows(dir_light, box);
         updateHUD();
     }
+    controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 }
