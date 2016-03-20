@@ -138,7 +138,7 @@ function makeProjectile() {
     box.castShadow = true;
     box.the_projectile = true;
     box.size = box.geometry.parameters.height;
-    box.launchVelocity = 100;
+    box.launchVelocity = 0;
     scene.add(box);
     dir_light.target = box; // allows us to always render shadows around box
 }
@@ -225,15 +225,19 @@ function makeCannon() {
     var intersectionBSP = largeCylinderBSP.subtract(smallCylinderBSP);
     var barrelMaterial = new THREE.MeshLambertMaterial({ color: 0x111111 });
     var hollowCylinder = intersectionBSP.toMesh(barrelMaterial);
-    hollowCylinder.position.y = 15;
+    hollowCylinder.position.z = 15;
+    hollowCylinder.rotateX(Math.PI/2);
     hollowCylinder.receiveShadow = true;
     hollowCylinder.castShadow = true;
     barrelV = new THREE.Object3D();
     barrelV.add(hollowCylinder);
-    barrelV.position.y = 4; // keep rotation radius, but move to right place
+    barrelV.position.y = -4; // keep rotation radius, but move to right place
+    var tmp = new THREE.Object3D();
+    tmp.add(barrelV);
+    tmp.rotateZ(Math.PI);
     barrelH = new THREE.Object3D();
     barrelH.add(track);
-    barrelH.add(barrelV);
+    barrelH.add(tmp);
 
     var base = new THREE.Mesh(
         new THREE.CylinderGeometry(10, 10, 8, 32),
@@ -268,10 +272,11 @@ function tossBox() {
 }
 
 function shootBox() {
+    GAME_RUNNING = true;
     box.position.set(0, 8, 0);
     box.setAngularVelocity(
             new THREE.Vector3(rand(-7, 7), rand(-7, 7), rand(-7, 7)));
-    var speed = box.launchVelocity;
+    var speed = box.launchVelocity * realisticFactor;
     var phi = barrelV.rotation.x;
     var theta = barrelH.rotation.y;
     var z = speed * Math.sin(phi) * Math.cos(theta); // math x | graphics z
@@ -323,7 +328,6 @@ function handleUserInput() {
     }
 
     if (keyboard.pressed('space')) {
-        GAME_RUNNING = true;
         shootBox();
     }
 
@@ -355,29 +359,30 @@ function toggleMessage() {
 }
 
 function makeGUI() {
-    var params = {
-        velocity: 9.89,
-        verticalBarrellAngle: 0.927,
-        turretRotationAngle: 0.785,
-    };
+    // initialize controlled values properly
+    box.launchVelocity = 9.89;
+    barrelH.rotation.y = 0.927;
+    barrelV.rotation.x = 0.785;
 
     var gui = new dat.GUI();
-    var sceneGui = gui.addFolder('Details');
-
-    sceneGui.add(params, 'velocity', 0.0, 33.0)
+    gui.add(box, 'launchVelocity', 0.0, 33.0, 0.01).listen()
         .name("Launch Velocity").onChange(function (value) {
-            box.launchVelocity = value * realisticFactor;
+            box.launchVelocity = value;
         });
-    sceneGui.add(params, 'verticalBarrellAngle', 0.0, 2*Math.PI)
+    gui.add(barrelH.rotation, 'y', 0.0, 2*Math.PI, 0.001).listen()
         .name("Azimuth Angle").onChange(function (value) {
             barrelH.rotation.y = value;
             barrelH.__dirtyRotation = true;
         });
-    sceneGui.add(params, 'turretRotationAngle', 0.0, Math.PI/2)
+    gui.add(barrelV.rotation, 'x', 0.0, Math.PI/2, 0.001).listen()
         .name("Altitude Angle").onChange(function (value) {
-            barrelV.rotation.x = Math.PI/2 - value;
+            barrelV.rotation.x = value;
             barrelV.__dirtyRotation = true;
         });
+    gui.add({ toggle: toggleMessage }, 'toggle').name("Show/Hide Message");
+    gui.add({ fire: shootBox }, 'fire').name("FIRE!");
+
+    gui.width = 500;
     gui.open();
 }
 
