@@ -403,10 +403,11 @@ function render() {
 
 function pad(pad, str, padRight) {
     if (typeof str === 'undefined') return pad;
+    var length = Math.max(pad.length, str.length);
     if (padRight) {
-        return (str + pad).substring(0, pad.length);
+        return (str + pad).substring(0, length);
     } else {
-        return (pad + str).slice(-pad.length);
+        return (pad + str).slice(-length);
     }
 }
 
