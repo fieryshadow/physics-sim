@@ -162,8 +162,8 @@ function makeTarget(){
         0,
         { restitution: 0, friction: 1 }
     );
-    target.position.x = 50; //400; //rand(90, 190);   // multiplied these by 5 (80ft,60ft)
-    target.position.z = 60;// 300; //rand(90, 190);
+    target.position.x = 80; //North
+    target.position.z = 60; //East
     target.receiveShadow = true;
     target.castShadow = true;
     scene.add(target);
@@ -176,37 +176,45 @@ function makeTarget(){
     	other_obj.position.set(0, 8, 0); 
         cameraChase(camera, other_obj);
         level++;
-	if (level == 2)
-	{ 
-		target.position.x = 150;
-		target.position.z = 50;
-	}
-	else if(level == 3) {
-		target.position.x = 150;
-		target.position.z = 150;
-	}
-	else if(level == 4) {
-		target.position.x = 50;
-		target.position.z = 150;
-	}
-	else if(level == 5) {
-		target.position.x = 100;
-		target.position.z = 100;
-	}
-	else {
-	        showMessage('congratulations, you won!')
-                GAME_RUNNING = false;
-		level = 0;
-		return;
-	}
 
-	scene.add(box);
-	scene.add(target);	
+        //console.log("this is what the GAME_RUNNING status is: "+ GAME_RUNNING);
 
-        showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);             
-                GAME_RUNNING = false;
+        box.__dirtyPosition = true;
+        box.position.set(0, 8, 0);
+
+        target.__dirtyPosition = true;
+        GAME_RUNNING = false;
+    	if (level == 2)
+    	{ 
+            target.position.x = 150;
+    		target.position.z = 50;  
+    	}
+    	else if(level == 3) {
+    		target.position.x = 150;
+    		target.position.z = 150;
+    	}
+    	else if(level == 4) {
+    		target.position.x = 50;
+    		target.position.z = 150;
+    	}
+    	else if(level == 5) {
+    		target.position.x = 100;
+    		target.position.z = 100;
+    	}
+    	else {
+    	        showMessage('congratulations, you won!')
+                    GAME_RUNNING = false;
+    		level = 0;
+    		return;
+    	}
+
+    	//scene.add(box);
+    	scene.add(target);
+
+            showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);             
+                    GAME_RUNNING = false;
+                }
             }
-        }
     );
 }
 
@@ -323,7 +331,7 @@ function tossBox() {
 function shootBox() {
     
     box.position.set(0, 8, 0);
-    box.setAngularVelocity(new THREE.Vector3(
+    box.setAngularVelocity(new THREE.Vector3(//0,0,0));
                 rand(-7, 7), rand(-7, 7), rand(-7, 7)));
     var speed = box.launchVelocity;
     var phi = barrelV.rotation.x;
@@ -424,14 +432,14 @@ function makeGUI(){
                 sceneGui.add( params, 'velocity', 0.00, 200.0, 31.30).name("Launch Velocity").onChange(function (value) {
                     box.launchVelocity = value
                 });
-                sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI, 0.785).name("Azimuth Angle")
+                sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI *180/Math.PI, 0.785*180/Math.PI).name("Azimuth Angle")
                 .onChange(function (value){
-                    barrelH.rotation.y = value;
+                    barrelH.rotation.y = value*Math.PI/180;
                     barrelH.__dirtyRotation = true; 
                 });
-                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ,0.927).name("Altitude Angle")
+                sceneGui.add( params, 'turretRotationAngle', 0.0, (180/Math.PI)*(Math.PI/2) ,0.927*180/Math.PI).name("Altitude Angle")
                 .onChange(function (value){
-                    barrelV.rotation.x = value;
+                    barrelV.rotation.x = value*Math.PI/180;
                     barrelV.__dirtyRotation = true; 
                 });
                 gui.open();
