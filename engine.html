@@ -26,7 +26,7 @@ var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
 var controls, orbCam;
 var objectives = [
-"Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.<br> <br>Test purposes:<br> <br>Okay guys I did the physics for the first problem.<br>For the first target at position 60m, 80m, 0m set the following values:<br>Azimuth: 0.927rad<br>Altitude: 0.785rad<br>Velocity: 31.30 m/s<br> That should hit the target dead center.",
+"Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.<br> <br>Test purposes:<br> <br>Okay guys I did the physics for the first problem.<br>For the first target at position 60m, 80m, 0m set the following values:<br>Azimuth: 53.13 degrees<br>Altitude: 45 degrees<br>Velocity: 31.30 m/s<br> That should hit the target dead center.",
 "1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
 "2. Think of the map as a grid, the cannon is at the position (30,50) and the target is at position (100, 70).<br>Set the altitude of the cannon to (30 degrees) to shoot the correct distance. <br>Figure out the azimuth angle needed to hit the target.",
 "3. Adjusting the altitude angle of the cannon to (60 degrees) will send the projectile flying <br>for (6 seconds) when the cannon launches the projectile at a velocity of (30 ft/s). <br>Set the Azimuth to (0 degrees).<br>At what distance should the target be set so that the projectile will hit it?<br>- Set the azimuth of the cannon to (0 degrees), to aim at the target<br>- Calculate the position distance of the target <br>- Input the distance and shoot",
@@ -177,13 +177,10 @@ function makeTarget(){
         cameraChase(camera, other_obj);
         level++;
 
-        //console.log("this is what the GAME_RUNNING status is: "+ GAME_RUNNING);
-
         box.__dirtyPosition = true;
         box.position.set(0, 8, 0);
 
         target.__dirtyPosition = true;
-        GAME_RUNNING = false;
     	if (level == 2)
     	{ 
             target.position.x = 150;
@@ -202,14 +199,13 @@ function makeTarget(){
     		target.position.z = 100;
     	}
     	else {
-    	        showMessage('congratulations, you won!')
-                    GAME_RUNNING = false;
-    		level = 0;
+    	   showMessage('congratulations, you won!');
+           target.position.x = 80; //North
+            target.position.z = 60; //East
+            GAME_RUNNING = false;
+    	   level = 0;
     		return;
     	}
-
-    	//scene.add(box);
-    	scene.add(target);
 
             showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);             
                     GAME_RUNNING = false;
