@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
     <title>Physics Sim</title>
 
@@ -20,33 +18,33 @@
 
 Physijs.scripts.worker = 'js/physijs_worker.js';
 
-var renderer, scene, camera, am_light, dir_light, loader, ground_material,
-    ground, barrelV, barrelH, box, target;
+var renderer, scene, camera, am_light, dir_light, loader, ground,
+    barrelV, barrelH, box, target;
 var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
 var controls, orbCam;
 var objectives = [
-"Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.<br> <br>Test purposes:<br> <br>Okay guys I did the physics for the first problem.<br>For the first target at position 60m, 80m, 0m set the following values:<br>Azimuth: 0.927rad<br>Altitude: 0.785rad<br>Velocity: 31.30 m/s<br> That should hit the target dead center.",
-"1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
-"2. Think of the map as a grid, the cannon is at the position (30,50) and the target is at position (100, 70).<br>Set the altitude of the cannon to (30 degrees) to shoot the correct distance. <br>Figure out the azimuth angle needed to hit the target.",
-"3. Adjusting the altitude angle of the cannon to (60 degrees) will send the projectile flying <br>for (6 seconds) when the cannon launches the projectile at a velocity of (30 ft/s). <br>Set the Azimuth to (0 degrees).<br>At what distance should the target be set so that the projectile will hit it?<br>- Set the azimuth of the cannon to (0 degrees), to aim at the target<br>- Calculate the position distance of the target <br>- Input the distance and shoot",
-"4. The target is located (X) ft from the cannon in a direction of (Y) degrees. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 30 ft/s)<br><br>Instructions:<br>- Set the azimuth of the cannon to (Y) degrees, to aim at the target<br>- Calculate the altitude angle needed for the projectile to hit the target, Click here to learn the physics",
-"5. The target is located (X) ft horizontally from the cannon in a direction of (Y) degrees, at a height of (20 ft). Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 30 ft/s)<br><br>Instructions:<br>- Set the azimuth of the cannon to (Y) degrees, to aim at the target<br>- Calculate the altitude angle needed for the projectile to hit the target"
+    "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.<br> <br>Test purposes:<br> <br>Okay guys I did the physics for the first problem.<br>For the first target at position 60m, 80m, 0m set the following values:<br>Azimuth: 0.927rad<br>Altitude: 0.785rad<br>Velocity: 31.30 m/s<br> That should hit the target dead center.",
+    "1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
+    "2. Think of the map as a grid, the cannon is at the position (30,50) and the target is at position (100, 70).<br>Set the altitude of the cannon to (30 degrees) to shoot the correct distance. <br>Figure out the azimuth angle needed to hit the target.",
+    "3. Adjusting the altitude angle of the cannon to (60 degrees) will send the projectile flying <br>for (6 seconds) when the cannon launches the projectile at a velocity of (30 ft/s). <br>Set the Azimuth to (0 degrees).<br>At what distance should the target be set so that the projectile will hit it?<br>- Set the azimuth of the cannon to (0 degrees), to aim at the target<br>- Calculate the position distance of the target <br>- Input the distance and shoot",
+    "4. The target is located (X) ft from the cannon in a direction of (Y) degrees. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 30 ft/s)<br><br>Instructions:<br>- Set the azimuth of the cannon to (Y) degrees, to aim at the target<br>- Calculate the altitude angle needed for the projectile to hit the target, Click here to learn the physics",
+    "5. The target is located (X) ft horizontally from the cannon in a direction of (Y) degrees, at a height of (20 ft). Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 30 ft/s)<br><br>Instructions:<br>- Set the azimuth of the cannon to (Y) degrees, to aim at the target<br>- Calculate the altitude angle needed for the projectile to hit the target"
 ];
 
 var instructions = [
-"Press Enter to see your first objective.", 
-"Azimuth = The angle describing the direction of the cannon like north, south, or somewhere in between <br>Altitude = The angle describing how high the cannon is aiming, between vertical and horizontal <br><br>Math: <br> theta = atan(y/x) <br> y = north/south distance to the target <br> x = west/east distance to the target <br><br>*theta is the azimuth angle<br><br><br><br>Press Enter to show or hide this text",
-"Instructions:<br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br><br> y = (y-target - y-cannon) <br> *y = north/south distance to the target<br> *y-target = y coordinate of the target ( __, 70 )<br> *y-cannon = y coordinate of the cannon ( __, 50 )<br><br> x = (x-target - x-cannon)<br> *x = west/east distance to the target<br> *x-target = x coordinate of the target ( 100, __ )<br> *x-cannon = x coordinate of the cannon ( 30, __ )<br><br> theta = atan(y/x)<br>*theta = azimuth angle",
-"Physics<br><br>v(x) = v * cos(theta)<br> *v(x) = horizontal component of the velocity of the projectile<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br><br>d = v(x) * t<br> *d = distance from the cannon to the target<br> *v(x) = horizontal velocity of the projectile when launched<br> *t = time that passes from launch until collision",
-"Physics <br><br>Solve for t (theta will still be unknown)<br><br> s(x) = v * cos(theta) * t<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br> *s(x) = horizontal distance from the cannon to the target <br> *t = time that passes from launch until collision<br><br><br>Substitute your answer for the t in this equation <br><br>-16.1 * t^2 + v * sin(theta) * t = 0<br> *-16.1 = 1/2 the acceleration due to gravity (ft/s^2)",
-"Physics <br><br>(It is almost the same as the last problem, except the second equation is not equal to 0)<br>Solve for t (theta will still be unknown)<br><br> s(x) = v * cos(theta) * t<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br> *s(x) = horizontal distance from the cannon to the target <br> *t = time that passes from launch until collision<br><br><br>Substitute your answer for the t in this equation <br><br>-16.1 * t^2 + v * sin(theta) * t = (20ft)<br> *-16.1 = 1/2 the acceleration due to gravity (ft/s^2)"
+    "Press Enter to see your first objective.",
+    "Azimuth = The angle describing the direction of the cannon like north, south, or somewhere in between <br>Altitude = The angle describing how high the cannon is aiming, between vertical and horizontal <br><br>Math: <br> theta = atan(y/x) <br> y = north/south distance to the target <br> x = west/east distance to the target <br><br>*theta is the azimuth angle<br><br><br><br>Press Enter to show or hide this text",
+    "Instructions:<br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br><br> y = (y-target - y-cannon) <br> *y = north/south distance to the target<br> *y-target = y coordinate of the target ( __, 70 )<br> *y-cannon = y coordinate of the cannon ( __, 50 )<br><br> x = (x-target - x-cannon)<br> *x = west/east distance to the target<br> *x-target = x coordinate of the target ( 100, __ )<br> *x-cannon = x coordinate of the cannon ( 30, __ )<br><br> theta = atan(y/x)<br>*theta = azimuth angle",
+    "Physics<br><br>v(x) = v * cos(theta)<br> *v(x) = horizontal component of the velocity of the projectile<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br><br>d = v(x) * t<br> *d = distance from the cannon to the target<br> *v(x) = horizontal velocity of the projectile when launched<br> *t = time that passes from launch until collision",
+    "Physics <br><br>Solve for t (theta will still be unknown)<br><br> s(x) = v * cos(theta) * t<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br> *s(x) = horizontal distance from the cannon to the target <br> *t = time that passes from launch until collision<br><br><br>Substitute your answer for the t in this equation <br><br>-16.1 * t^2 + v * sin(theta) * t = 0<br> *-16.1 = 1/2 the acceleration due to gravity (ft/s^2)",
+    "Physics <br><br>(It is almost the same as the last problem, except the second equation is not equal to 0)<br>Solve for t (theta will still be unknown)<br><br> s(x) = v * cos(theta) * t<br> *v = velocity of the projectile when launched<br> *theta = altitude angle of the cannon<br> *s(x) = horizontal distance from the cannon to the target <br> *t = time that passes from launch until collision<br><br><br>Substitute your answer for the t in this equation <br><br>-16.1 * t^2 + v * sin(theta) * t = (20ft)<br> *-16.1 = 1/2 the acceleration due to gravity (ft/s^2)"
 ];
 
 var level = 0;
 
 function initScene() {
-showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
+    showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setClearColor(0xefd1b5); // reddish sky
@@ -92,25 +90,23 @@ showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
     dir_light.shadowDarkness = .85;
     scene.add(dir_light);
 
-    // Loader
+    // Misc
     loader = new THREE.TextureLoader();
-
-    // Materials
-    ground_material = Physijs.createMaterial(
-        //new THREE.MeshLambertMaterial({ map: loader.load('images/comeau.jpg') }),
-        new THREE.MeshLambertMaterial({ map: loader.load('images/grass.png') }),
-        .9, // high friction
-        .2 // low restitution
-    );
-    ground_material.map.wrapS = ground_material.map.wrapT = THREE.RepeatWrapping;
-    ground_material.map.repeat.set(600, 600);
-
     renderer.shadowMap.enabled = true;
 
     // Ground
+    var g_image = loader.load('images/' + (1 ? 'grass.png' : 'comeau.jpg'));
+    var g_material = Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({ map: g_image }),
+        .9, // high friction
+        .2 // low restitution
+    );
+    g_material.map.wrapS = g_material.map.wrapT = THREE.RepeatWrapping;
+    g_material.map.repeat.set(600, 600);
+
     ground = new Physijs.BoxMesh(
         new THREE.BoxGeometry(20000, 1, 20000),
-        ground_material,
+        g_material,
         0, // mass
         { restitution: .2, friction: .8 }
     );
@@ -118,26 +114,20 @@ showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
     ground.receiveShadow = true;
     scene.add(ground);
 
+    // Call helpers
     makeCannon();
-
     makeProjectile();
-
     makeTarget();
-
     makeGUI();
-
     makeFloorCompass();
-
     requestAnimationFrame(render);
 }
 
-function makeProjectile(){
-
-    // Projectile
+function makeProjectile() {
+    var image = loader.load('images/' + (1 ? 'crate.jpg' : 'canada.jpg'));
     box = new Physijs.BoxMesh(
         new THREE.CubeGeometry(4, 4, 4),
-        new THREE.MeshLambertMaterial({ map: loader.load('images/crate.jpg') }),
-        //new THREE.MeshLambertMaterial({ map: loader.load('images/canada.jpg') }),
+        new THREE.MeshLambertMaterial({ map: image }),
         //new THREE.MeshLambertMaterial({ color: 0x888888 }),
         55, // mass
         { restitution: .9, friction: .1 }
@@ -151,11 +141,11 @@ function makeProjectile(){
     dir_light.target = box; // allows us to always render shadows around box
 }
 
-function makeTarget(){
-    // Target
+function makeTarget() {
+    var image = loader.load('images/target.jpeg');
     target = new Physijs.BoxMesh(
         new THREE.BoxGeometry(45, .1, 45),
-        new THREE.MeshLambertMaterial({ map: loader.load('images/target.jpeg') }),
+        new THREE.MeshLambertMaterial({ map: image }),
         0,
         { restitution: 0, friction: 1 }
     );
@@ -165,60 +155,46 @@ function makeTarget(){
     target.castShadow = true;
     scene.add(target);
 
-    // Collision
     target.addEventListener(
         'collision',
         function(other_obj, rel_vel, rel_rot, contact_normal) {
             if (other_obj.the_projectile) {
-        level++;
-        showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);             
+                level++;
+                showMessage(
+                    objectives[level]+'<br><br><br>'+instructions[level]);
                 GAME_RUNNING = false;
             }
         }
     );
 }
 
-function makeFloorCompass(){
-
-    var isPirate = true;
-
-    if (isPirate){
-        //this is the pirate compass:
-        var material = Physijs.createMaterial(
-            new THREE.MeshLambertMaterial({ map: loader.load('images/pirateCompass.jpg') }),
-            0.5,
-            0.5
-        );
-        var compass = new Physijs.BoxMesh(
-            new THREE.BoxGeometry(43.51, .1, 30),
-            material,
-            0,
-            { restitution: 0, friction: 1 }
-        );
-        compass.position.x = -30;
-        compass.position.z = -30;
-        compass.rotation.y = -Math.PI/2;
-        compass.receiveShadow = true;
-        scene.add(compass);
+function makeFloorCompass() {
+    if (1) { // the cool pirate compass
+        var image = loader.load('images/pirateCompass.jpg');
+        var geometry = new THREE.BoxGeometry(43.51, .1, 30);
+        var rotation = -Math.PI/2;
+    } else { // the normal boring compass
+        var image = loader.load('images/basicCompass.jpg');
+        var geometry = new THREE.BoxGeometry(30, .1, 35.8565);
+        var rotation = 0;
     }
-    //normal boring compass
-    else{
-        var material = Physijs.createMaterial(
-            new THREE.MeshLambertMaterial({ map: loader.load('images/basicCompass.jpg') }),
-            0.5,
-            0.5
-        );
-        var compass = new Physijs.BoxMesh(
-            new THREE.BoxGeometry(30, .1, 35.8565),
-            material,
-            0,
-            { restitution: 0, friction: 1 }
-        );
-        compass.position.x = 30;
-        compass.position.z = 30;
-        compass.receiveShadow = true;
-        scene.add(compass);
-    }
+
+    var material = Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({ map: image }),
+        0.5,
+        0.5
+    );
+    var compass = new Physijs.BoxMesh(
+        geometry,
+        material,
+        0,
+        { restitution: 0, friction: 1 }
+    );
+    compass.position.x = -30;
+    compass.position.z = -30;
+    compass.rotation.y = rotation;
+    compass.receiveShadow = true;
+    scene.add(compass);
 }
 
 function makeCannon() {
@@ -246,13 +222,13 @@ function makeCannon() {
     var largeCylinderBSP = new ThreeBSP(largeCylinderGeom);
     var intersectionBSP = largeCylinderBSP.subtract(smallCylinderBSP);
     var barrelMaterial = new THREE.MeshLambertMaterial({ color: 0x111111 });
-    var hollowCylinder = intersectionBSP.toMesh( barrelMaterial );
+    var hollowCylinder = intersectionBSP.toMesh(barrelMaterial);
     hollowCylinder.position.y = 15;
     hollowCylinder.receiveShadow = true;
     hollowCylinder.castShadow = true;
     barrelV = new THREE.Object3D();
     barrelV.add(hollowCylinder);
-    barrelV.position.y = 4; // keep rotation radius - but moved to right place
+    barrelV.position.y = 4; // keep rotation radius, but move to right place
     barrelH = new THREE.Object3D();
     barrelH.add(track);
     barrelH.add(barrelV);
@@ -264,6 +240,7 @@ function makeCannon() {
     base.position.y = 4;
     base.receiveShadow = true;
     base.castShadow = true;
+
     base.add(barrelH);
     base.add(dome);
     scene.add(base);
@@ -282,23 +259,22 @@ function cameraChase(cam, mesh) {
 }
 
 function tossBox() {
-    box.setAngularVelocity(new THREE.Vector3(
-                rand(-7, 7), rand(-7, 7), rand(-7, 7)));
-    box.setLinearVelocity(new THREE.Vector3(
-                rand(-66, 66), rand(32, 123), rand(-66, 66)));
+    box.setAngularVelocity(
+            new THREE.Vector3(rand(-7, 7), rand(-7, 7), rand(-7, 7)));
+    box.setLinearVelocity(
+            new THREE.Vector3(rand(-66, 66), rand(32, 123), rand(-66, 66)));
 }
 
 function shootBox() {
-    
     box.position.set(0, 8, 0);
-    box.setAngularVelocity(new THREE.Vector3(
-                rand(-7, 7), rand(-7, 7), rand(-7, 7)));
+    box.setAngularVelocity(
+            new THREE.Vector3(rand(-7, 7), rand(-7, 7), rand(-7, 7)));
     var speed = box.launchVelocity;
     var phi = barrelV.rotation.x;
     var theta = barrelH.rotation.y;
-    var x = speed * Math.sin(phi) * Math.sin(theta);
-    var y = speed * Math.cos(phi); // up
-    var z = speed * Math.sin(phi) * Math.cos(theta);
+    var z = speed * Math.sin(phi) * Math.cos(theta); // math x | graphics z
+    var x = speed * Math.sin(phi) * Math.sin(theta); // math y | graphics x
+    var y = speed * Math.cos(phi); // math z | graphics y
     box.setLinearVelocity(new THREE.Vector3(x, y, z));
 }
 
@@ -309,8 +285,8 @@ function updateShadows(light, mesh) {
 }
 
 function updateHUD() {
-    var str;
-    str = 'Use the arrow keys to position cannon and spacebar to shoot.<br>Press enter to show or hide the menu.';
+    var str = 'Use the arrow keys to position cannon and spacebar to ' +
+        'shoot.<br>Press enter to show or hide the menu.';
     changeHTML('info', str);
     str = 'Longitude: ' + pad('    ', Math.round(box.position.x)) + 'ft';
     changeHTML('longitude', str);
@@ -343,26 +319,23 @@ function handleUserInput() {
     }
 
     if (keyboard.pressed('space')) {
-
         GAME_RUNNING = true;
         shootBox();
     }
 
     if (keyboard.down('enter')) {
         if (level == 0) {
-	  level = 1;
-	  showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
-	}
+            level = 1;
+            showMessage(objectives[level]+'<br><br><br>'+instructions[level]);
+        }
         else {
-          toggleMessage();
-	}
+            toggleMessage();
+        }
     }
 }
 
 function showMessage(str) {
     changeHTML('popupP', str);
-    //console.log('here');
-    //console.log(document.getElementById('popup').style.display)
     document.getElementById('popup').style.display = 'block';
     document.getElementById('popupP').style.display = 'block';
 }
@@ -377,33 +350,31 @@ function toggleMessage() {
     }
 }
 
-function makeGUI(){
-
+function makeGUI() {
     var params = {
-                    velocity: 31.301,
-                    verticalBarrellAngle: 0.927,
-                    turretRotationAngle: 0.785,
-                };
+        velocity: 31.301,
+        verticalBarrellAngle: 0.927,
+        turretRotationAngle: 0.785,
+    };
 
     var gui = new dat.GUI();
+    var sceneGui = gui.addFolder('Details');
 
-    var sceneGui = gui.addFolder( 'Details' );
-
-                sceneGui.add( params, 'velocity', 0.00, 200.0, 31.30).name("Launch Velocity").onChange(function (value) {
-                    box.launchVelocity = value
-                });
-                sceneGui.add( params, 'verticalBarrellAngle', 0.0, 2*Math.PI, 0.785).name("Azimuth Angle")
-                .onChange(function (value){
-                    barrelH.rotation.y = value;
-                    barrelH.__dirtyRotation = true; 
-                });
-                sceneGui.add( params, 'turretRotationAngle', 0.0, Math.PI/2 ,0.927).name("Altitude Angle")
-                .onChange(function (value){
-                    barrelV.rotation.x = value;
-                    barrelV.__dirtyRotation = true; 
-                });
-                gui.open();
-
+    sceneGui.add(params, 'velocity', 0.00, 200.0, 31.30)
+        .name("Launch Velocity").onChange(function (value) {
+            box.launchVelocity = value;
+        });
+    sceneGui.add(params, 'verticalBarrellAngle', 0.0, 2*Math.PI, 0.785)
+        .name("Azimuth Angle").onChange(function (value) {
+            barrelH.rotation.y = value;
+            barrelH.__dirtyRotation = true;
+        });
+    sceneGui.add(params, 'turretRotationAngle', 0.0, Math.PI/2 ,0.927)
+        .name("Altitude Angle").onChange(function (value) {
+            barrelV.rotation.x = value;
+            barrelV.__dirtyRotation = true;
+        });
+    gui.open();
 }
 
 function render() {
@@ -422,13 +393,12 @@ function render() {
 }
 
 function pad(pad, str, padRight) {
-
-  if (typeof str === 'undefined') return pad;
-  if (padRight) {
-      return (str + pad).substring(0, pad.length);
-  } else {
-      return (pad + str).slice(-pad.length);
-  }
+    if (typeof str === 'undefined') return pad;
+    if (padRight) {
+        return (str + pad).substring(0, pad.length);
+    } else {
+        return (pad + str).slice(-pad.length);
+    }
 }
 
 window.onload = initScene;
