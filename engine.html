@@ -151,6 +151,9 @@ function makeProjectile(){
     dir_light.target = box; // allows us to always render shadows around box
 }
 
+function moveTarget() {
+}
+
 function makeTarget(){
     // Target
     target = new Physijs.BoxMesh(
@@ -159,8 +162,8 @@ function makeTarget(){
         0,
         { restitution: 0, friction: 1 }
     );
-    target.position.x = 80; //rand(90, 190);
-    target.position.z = 60; //rand(90, 190);
+    target.position.x = 50; //400; //rand(90, 190);   // multiplied these by 5 (80ft,60ft)
+    target.position.z = 60;// 300; //rand(90, 190);
     target.receiveShadow = true;
     target.castShadow = true;
     scene.add(target);
@@ -170,7 +173,36 @@ function makeTarget(){
         'collision',
         function(other_obj, rel_vel, rel_rot, contact_normal) {
             if (other_obj.the_projectile) {
+    	other_obj.position.set(0, 8, 0); 
+        cameraChase(camera, other_obj);
         level++;
+	if (level == 2)
+	{ 
+		target.position.x = 150;
+		target.position.z = 50;
+	}
+	else if(level == 3) {
+		target.position.x = 150;
+		target.position.z = 150;
+	}
+	else if(level == 4) {
+		target.position.x = 50;
+		target.position.z = 150;
+	}
+	else if(level == 5) {
+		target.position.x = 100;
+		target.position.z = 100;
+	}
+	else {
+	        showMessage('congratulations, you won!')
+                GAME_RUNNING = false;
+		level = 0;
+		return;
+	}
+
+	scene.add(box);
+	scene.add(target);	
+
         showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);             
                 GAME_RUNNING = false;
             }
