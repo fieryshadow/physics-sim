@@ -20,6 +20,7 @@ Physijs.scripts.worker = 'js/physijs_worker.js';
 
 var renderer, scene, camera, am_light, dir_light, loader, ground,
     barrelV, barrelH, box, target;
+var realisticFactor = 10;
 var GAME_RUNNING = true;
 var keyboard = new KeyboardState();
 var controls, orbCam;
@@ -53,8 +54,8 @@ function initScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('viewport').appendChild(renderer.domElement);
 
-    scene = new Physijs.Scene;
-    scene.setGravity(new THREE.Vector3(0, -9.8, 0));
+    scene = new Physijs.Scene({ reportsize: 10, fixedTimeStep: 1/60 });
+    scene.setGravity(new THREE.Vector3(0, -9.8 * realisticFactor, 0));
     scene.fog = new THREE.FogExp2(0xefd1b5, 0.0025); // reddish sky
     //scene.fog = new THREE.FogExp2(0x9999ff, 0.001); // blue
 
@@ -105,12 +106,12 @@ function initScene() {
     g_material.map.repeat.set(600, 600);
 
     ground = new Physijs.BoxMesh(
-        new THREE.BoxGeometry(20000, 1, 20000),
+        new THREE.BoxGeometry(20000, 4, 20000),
         g_material,
         0, // mass
-        { restitution: .2, friction: .8 }
+        { restitution: .2, friction: .9 }
     );
-    ground.position.y = -.5; // top of surface is at 0
+    ground.position.y = -2; // top surface is at an altitude of zero
     ground.receiveShadow = true;
     scene.add(ground);
 
@@ -130,12 +131,13 @@ function makeProjectile() {
         new THREE.MeshLambertMaterial({ map: image }),
         //new THREE.MeshLambertMaterial({ color: 0x888888 }),
         55, // mass
-        { restitution: .9, friction: .1 }
+        { restitution: .9, friction: .9 }
     );
-    box.position.y = 2.5; // prop it on top of the ground
+    box.position.y = 2; // prop it on top of the ground
     box.receiveShadow = true;
     box.castShadow = true;
     box.the_projectile = true;
+    box.size = box.geometry.parameters.height;
     box.launchVelocity = 100;
     scene.add(box);
     dir_light.target = box; // allows us to always render shadows around box
@@ -288,12 +290,14 @@ function updateHUD() {
     var str = 'Use the arrow keys to position cannon and spacebar to ' +
         'shoot.<br>Press enter to show or hide the menu.';
     changeHTML('info', str);
-    str = 'Longitude: ' + pad('    ', Math.round(box.position.x)) + 'm';
+    str = 'Longitude: ' + pad('    ',
+            Math.round(box.position.x) / realisticFactor) + 'm';
     changeHTML('longitude', str);
-    str = '  Latitude: ' + pad('    ', Math.round(box.position.z)) + 'm';
+    str = '  Latitude: ' + pad('    ',
+            Math.round(box.position.z) / realisticFactor) + 'm';
     changeHTML('latitude', str);
-    var alt = Math.round(box.position.y - box.geometry.parameters.height/2);
-    str = '  Altitude: ' + pad('    ', alt) + 'm';
+    str = '  Altitude: ' + pad('    ',
+            Math.round(box.position.y - box.size/2) / realisticFactor) + 'm';
     changeHTML('altitude', str);
 }
 
@@ -352,7 +356,7 @@ function toggleMessage() {
 
 function makeGUI() {
     var params = {
-        velocity: 31.301,
+        velocity: 9.89,
         verticalBarrellAngle: 0.927,
         turretRotationAngle: 0.785,
     };
@@ -360,18 +364,18 @@ function makeGUI() {
     var gui = new dat.GUI();
     var sceneGui = gui.addFolder('Details');
 
-    sceneGui.add(params, 'velocity', 0.00, 200.0, 31.30)
+    sceneGui.add(params, 'velocity', 0.0, 33.0)
         .name("Launch Velocity").onChange(function (value) {
-            box.launchVelocity = value;
+            box.launchVelocity = value * realisticFactor;
         });
-    sceneGui.add(params, 'verticalBarrellAngle', 0.0, 2*Math.PI, 0.785)
+    sceneGui.add(params, 'verticalBarrellAngle', 0.0, 2*Math.PI)
         .name("Azimuth Angle").onChange(function (value) {
             barrelH.rotation.y = value;
             barrelH.__dirtyRotation = true;
         });
-    sceneGui.add(params, 'turretRotationAngle', 0.0, Math.PI/2 ,0.927)
+    sceneGui.add(params, 'turretRotationAngle', 0.0, Math.PI/2)
         .name("Altitude Angle").onChange(function (value) {
-            barrelV.rotation.x = value;
+            barrelV.rotation.x = Math.PI/2 - value;
             barrelV.__dirtyRotation = true;
         });
     gui.open();
@@ -382,7 +386,7 @@ function render() {
     if (GAME_RUNNING) {
         box.__dirtyRotation = true;
         box.__dirtyPosition = true;
-        scene.simulate();
+        scene.simulate(undefined, 2); // try to be fast and accurate
         cameraChase(camera, box);
         updateShadows(dir_light, box);
         updateHUD();
