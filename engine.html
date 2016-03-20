@@ -331,7 +331,7 @@ function handleUserInput() {
         shootBox();
     }
 
-    if (keyboard.down('enter')) {
+    if (keyboard.down('esc') || keyboard.down('M')) {
         if (level == 0) {
             level = 1;
             showMessage(objectives[level]+'<br><br><br>'+instructions[level]);
