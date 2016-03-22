@@ -1,31 +1,71 @@
 html {
-	margin: 0;
-	padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-	margin: 0;
-	padding: 0;
-	font-family: Verdana;
-	font-size: 10pt;
-	overflow: hidden;
+    margin: 0;
+    padding: 0;
+    font-family: Verdana;
+    font-size: 10pt;
+    overflow: hidden;
 }
 
 #heading {
-	position: absolute;
-	top: 0;
-	width: 100%;
-	margin: 0;
-	padding: 0;
-	background-color: #71b87b;
-	text-align: center;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #71b87b;
+    text-align: center;
 }
 #heading h1 {
-	margin: 0;
-	padding: 6px 0;
-	background-color: #64a36d;
-	font-size: 16px;
+    margin: 0;
+    padding: 6px 0;
+    background-color: #64a36d;
+    font-size: 16px;
 }
 #heading a {
-	color: #4488ff;
+    color: #4488ff;
+}
+
+#hud {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background: rgba(0,0,0,0.3);
+}
+#displays {
+    position: relative;
+    margin: 3px;
+    color: white;
+}
+#info {
+    top: 0px;
+}
+#longitude {
+    top: 10px;
+}
+#latitude {
+    top: 20px;
+}
+#altitude {
+    top: 30px;
+}
+
+#popup {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    width: 800px;
+    z-index: 3;
+    height: 400px;
+    color: white;
+    background: rgba(0,0,0,0.7);
+}
+#popupP {
+    position: relative;
+    margin: 10px 10px 10px 10px;
 }
