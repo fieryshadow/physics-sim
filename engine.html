@@ -373,6 +373,13 @@ function handleUserInput() {
         shootBox();
     }
 
+    if (keyboard.pressed('pagedown')) {
+        addLaunchVelocity(-0.3);
+    }
+    if (keyboard.pressed('pageup')) {
+        addLaunchVelocity(0.3);
+    }
+
     if (keyboard.down('esc') || keyboard.down('M')) {
         if (level == 0) {
             level = 1;
@@ -407,9 +414,7 @@ function makeGUI() {
 
     gui = new dat.GUI();
     gui.add(box, 'launchVelocity', 0.0, 33.0)
-        .name("Launch Velocity").onChange(function (value) {
-            box.launchVelocity = value;
-        });
+        .name("Launch Velocity").onChange(setLaunchVelocity);
     gui.add(cannon, 'azimuth', 0.0, 360.0)
         .name("Azimuth Angle").onChange(setAzimuth);
     gui.add(cannon, 'altitude', 0.0, 90.0)
@@ -431,6 +436,15 @@ function setDefaults() {
     box.launchVelocity = 9.89;
     setAzimuth(53.13);
     setAltitude(45);
+}
+
+function setLaunchVelocity(value) {
+    box.launchVelocity = Math.min(Math.max(value, 0), 33);
+    refreshGUI();
+}
+
+function addLaunchVelocity(delta) {
+    setLaunchVelocity(box.launchVelocity + delta);
 }
 
 function setAzimuth(value) {
