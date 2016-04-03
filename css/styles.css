@@ -68,4 +68,5 @@ body {
 #popupP {
     position: relative;
     margin: 10px 10px 10px 10px;
+    word-break: break-word;
 }
