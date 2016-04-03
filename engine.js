@@ -3,11 +3,10 @@
 Physijs.scripts.worker = 'js/physijs_worker.js';
 
 var renderer, scene, camera, am_light, dir_light, loader, ground,
-    barrelV, barrelH, cannon, box, target, gui;
+    barrelV, barrelH, cannon, box, target, gui, keyboard, controls, orbCam;
 var realisticFactor = 10;
 var GAME_RUNNING = true;
-var keyboard = new KeyboardState();
-var controls, orbCam;
+var level = 0;
 var objectives = [
 "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
 "1. The target is located 60ft east of the cannon, and 80ft north.\nSet the altitude angle of the cannon to (45 degrees) in order to shoot that distance.\nYour task is to figure out the azimuth angle required to hit the target.<br>Instructions: <br>- Set the cannon's altitude to (45 degrees)<br>- Calculate the azimuth angle needed for the projectile to hit the target<br>- Orient the cannon with the controls and shoot to the target",
@@ -28,8 +27,6 @@ var instructions = [
 "Physics <br> Substitute t in this equation <br><br> (g/2) * t^2 + v * sin(theta) * t = h <br> t is the time the projectile is in the air.<br> h is the height of the target from the ground <br> v is the launch velocity <br> *g = -9.8 the acceleration due to gravity (m/s^2)"
 ];
 
-var level = 0;
-
 function initScene() {
     showMessage(objectives[level] + '<br><br><br>' +  instructions[level]);
 
@@ -39,6 +36,7 @@ function initScene() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('viewport').appendChild(renderer.domElement);
+    renderer.shadowMap.enabled = true;
 
     scene = new Physijs.Scene({ reportsize: 10, fixedTimeStep: 1/60 });
     scene.setGravity(new THREE.Vector3(0, -9.8 * realisticFactor, 0));
@@ -56,6 +54,10 @@ function initScene() {
         35, window.innerWidth / window.innerHeight, 1, 1000);
     orbCam.position.set(-80, 60, -90);
     controls = new THREE.OrbitControls(orbCam, renderer.domElement);
+
+    // helpers
+    keyboard = new KeyboardState();
+    loader = new THREE.TextureLoader();
 
     // ambient light
     am_light = new THREE.AmbientLight(0x444444); // gray
@@ -77,31 +79,8 @@ function initScene() {
     dir_light.shadowDarkness = .85;
     scene.add(dir_light);
 
-    // Misc
-    loader = new THREE.TextureLoader();
-    renderer.shadowMap.enabled = true;
-
-    // Ground
-    var g_image = loader.load('images/' + (1 ? 'grass.png' : 'comeau.jpg'));
-    var g_material = Physijs.createMaterial(
-        new THREE.MeshLambertMaterial({ map: g_image }),
-        .9, // high friction
-        .2 // low restitution
-    );
-    g_material.map.wrapS = g_material.map.wrapT = THREE.RepeatWrapping;
-    g_material.map.repeat.set(600, 600);
-
-    ground = new Physijs.BoxMesh(
-        new THREE.BoxGeometry(20000, 4, 20000),
-        g_material,
-        0, // mass
-        { restitution: .2, friction: .9 }
-    );
-    ground.position.y = -2; // top surface is at an altitude of zero
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    // Call helpers
+    // call helpers
+    makeGround();
     makeCannon();
     makeProjectile();
     makeTarget();
@@ -109,6 +88,27 @@ function initScene() {
     makeFloorCompass();
     setDefaults();
     requestAnimationFrame(render);
+}
+
+function makeGround() {
+    var image = loader.load('images/' + (1 ? 'grass.png' : 'comeau.jpg'));
+    var material = Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({ map: image }),
+        .9, // high friction
+        .2 // low restitution
+    );
+    material.map.wrapS = material.map.wrapT = THREE.RepeatWrapping;
+    material.map.repeat.set(60, 60);
+
+    ground = new Physijs.BoxMesh(
+        new THREE.BoxGeometry(20000, 20, 20000),
+        material,
+        0, // mass
+        { restitution: .2, friction: .9 }
+    );
+    ground.position.y = -10; // make top side have 0 altitude
+    ground.receiveShadow = true;
+    scene.add(ground);
 }
 
 function makeProjectile() {
@@ -178,8 +178,8 @@ function makeTarget() {
                 }
                 else {
                     showMessage('congratulations, you won!');
-                    target.position.x = 80; //North
-                    target.position.z = 60; //East
+                    target.position.x = 80; // North
+                    target.position.z = 60; // East
                     target.position.y = 0;
                     GAME_RUNNING = false;
                     level = 0;
