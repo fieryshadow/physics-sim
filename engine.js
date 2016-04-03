@@ -98,15 +98,15 @@ function makeGround() {
         .2 // low restitution
     );
     material.map.wrapS = material.map.wrapT = THREE.RepeatWrapping;
-    material.map.repeat.set(60, 60);
+    material.map.repeat.set(70, 70);
 
     ground = new Physijs.BoxMesh(
-        new THREE.BoxGeometry(20000, 20, 20000),
+        new THREE.BoxGeometry(4000, 40, 4000),
         material,
         0, // mass
         { restitution: .2, friction: .9 }
     );
-    ground.position.y = -10; // make top side have 0 altitude
+    ground.position.y = -20; // make top side have 0 altitude
     ground.receiveShadow = true;
     scene.add(ground);
 }
