@@ -6,16 +6,17 @@ var renderer, scene, camera, am_light, dir_light, loader, ground,
     barrelV, barrelH, cannon, box, target, gui, keyboard, controls, orbCam;
 var realisticFactor = 10;
 var GAME_RUNNING = true;
-var level = 0;
+var level = 0; 
 var TD_SCALE = 10;  //The target distance scale
+var autoWin = true;
 var objectives = [
 "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
 "1. The target is located 60m east of the cannon, and 80m north. Set the altitude angle of the cannon to 45 degrees and set the velocity to 31.32 m/s in order to shoot that distance. Your task is to figure out the azimuth angle required to hit the target.\n\nInstructions:\n- Set the cannon's altitude to 45 degrees\n- Set the velocity to 31.32m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n- Orient the cannon with the controls and shoot to the target",
 "2. Think of the map as a grid, the cannon is at the position (30, 50) and the target is at position (100, 70). Set the altitude of the cannon to 30 degrees and set the velocity to 28.72 m/s to shoot the correct distance. You should figure out the azimuth angle needed to hit the target.",
 //"3. Adjusting the altitude angle of the cannon to (60 degrees) will send the projectile flying \nfor (6 seconds) when the cannon launches the projectile at a velocity of (30 m/s). \nSet the Azimuth to (0 degrees).\nAt what distance should the target be set so that the projectile will hit it?\n- Set the azimuth of the cannon to (0 degrees), to aim at the target\n- Calculate the position distance of the target \n- Input the distance and shoot",
 "3. Think of the map as a grid, the cannon is at the position (100, 12) and the target is at position (250, 70). Set the altitude of the cannon to (60 degrees) to shoot the correct distance. Figure out the azimuth angle needed to hit the target, and calculate the launch velocity.",
-"4. The target is located 34 meters from the cannon in a direction of 47 degrees (Azimuth). Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 20 m/s and it is in the air for 3.9 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees, to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target.",
-"5. The target is located 34 m horizontally from the cannon in a direction of 47 degrees (Azimuth), at a height of 15 meters. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 20 m/s and it is in the air for 3.58 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target"
+"4. The target is located 46 meters from the cannon in a direction of 47 degrees (Azimuth). Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 25 m/s and it is in the air for 4.7 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees, to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target.",
+"5. The target is located 23m horizontally from the cannon in a direction of 47 degrees (Azimuth), at a height of 20 meters. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 27 m/s and it is in the air for 4.5 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target"
 ];
 
 var instructions = [
@@ -161,21 +162,47 @@ function makeTarget() {
                     target.position.x = 20 * TD_SCALE;
                     target.position.z = 70 * TD_SCALE;
                     target.position.y = 0 * TD_SCALE;
+			
+	  	  if (autoWin == true) {
+		    box.launchVelocity = 28.72;
+		    setAzimuth(15.95);
+		    setAltitude(30); }
+
                 }
                 else if (level == 3) {
                     target.position.x = 58 * TD_SCALE;
                     target.position.z = 30 *TD_SCALE;
                     target.position.y = 0 * TD_SCALE;
+
+	  	  if (autoWin == true) {
+		    box.launchVelocity = 27.19;
+		    setAzimuth(62.65);
+		    setAltitude(60);
+		  }
                 }
                 else if (level == 4) {
-                    target.position.x = 24.866 * TD_SCALE;
-                    target.position.z = 23.188 * TD_SCALE;
+                    target.position.x = 33.642 * TD_SCALE;
+                    target.position.z = 31.372 * TD_SCALE;
                     target.position.y = 0 * TD_SCALE;
+
+	  	  if (autoWin == true) {
+		    box.launchVelocity = 25;
+		    setAzimuth(47);
+		    setAltitude(66.92);
+		  }
+
                 }
                 else if (level == 5) {
-                    target.position.x = 24.866 * TD_SCALE;
-                    target.position.z = 23.188 * TD_SCALE;
-                    target.position.y = 15 * TD_SCALE;
+                    target.position.x = 16.821 * TD_SCALE;
+                    target.position.z = 15.686 * TD_SCALE;
+                    target.position.y = 20 * TD_SCALE;
+
+	  	  if (autoWin == true) {
+		    box.launchVelocity = 27;
+		    setAzimuth(47);
+		    setAltitude(79.07);
+		  }
+
                 }
                 else {
                     showMessage('Congratulations, you won!');
@@ -184,6 +211,12 @@ function makeTarget() {
                     target.position.y = 0 * TD_SCALE;
                     GAME_RUNNING = false;
                     level = 0;
+
+	  	  if (autoWin == true) {
+		    box.launchVelocity = 31.32;
+		    setAzimuth(53.13);
+		    setAltitude(45);
+		  }
                     return;
                 }
 
@@ -419,7 +452,11 @@ function refreshGUI() {
 
 function setDefaults() {
     box.launchVelocity = 31.32;
-    setAzimuth(60);
+    if(autoWin == true) {
+    	setAzimuth(53.13); }
+    else {
+	setAzimuth(60); }
+
     setAltitude(45);
 }
 
