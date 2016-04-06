@@ -16,7 +16,7 @@ var numShots = 0;
 var liveBox = false;
 var level = 0;
 
-
+// Define the level objectives here 
 var objectives = [
 "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
 "1. The target is located 60 meters something </a> east of the cannon, and 80 meters north. Set the altitude angle of the cannon to 45 degrees and set the velocity to 31.32 m/s in order to shoot that distance. Your task is to figure out the azimuth angle required to hit the target (East represents 0 degrees, North is 90 degrees, etc.)\n\nInstructions:\n- Set the cannon's altitude to 45 degrees\n- Set the velocity to 31.32 m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n- Orient the cannon by inputing the calculated number in the controls\n- Shoot to the target with the space bar",
@@ -27,6 +27,7 @@ var objectives = [
 "To be modified"
 ];
 
+// Define the level instructions here 
 var instructions = [
 "Press Esc/M to see your first objective.",
 "Azimuth - The angle describing the direction of the cannon like north, south, or somewhere in between.\nAltitude - The angle describing how high the cannon is aiming, between vertical and horizontal.\n\n<img src=\"images/Equation1.gif\">\n Press Esc/M to show or hide this text.",
@@ -37,6 +38,10 @@ var instructions = [
 "<img src=\"images/Equation6.gif\">"
 ];
 
+/******************************************************************
+ * Init Scene 
+ * - Sets up the Scene with lights, cameras, and objects 
+ ******************************************************************/ 
 function initScene() {
     showMessage(objectives[level]+'\n\n\n'+instructions[level]);
 
@@ -100,15 +105,18 @@ function initScene() {
     requestAnimationFrame(render);
 }
 
+/***********************************************************
+ * Make Ground 
+ * - Build and texture the ground in the level
+ ***********************************************************/ 
 function makeGround() {
     var image = loader.load('images/' + (1 ? 'grass.png' : 'comeau.jpg'));
     var material = Physijs.createMaterial(
         new THREE.MeshLambertMaterial({ map: image }),
-        .9, // high friction .9
+        .9, // high friction
         .2 // low restitution
     );
     material.map.wrapS = material.map.wrapT = THREE.RepeatWrapping;
-//    material.map.repeat.set(70, 70);
     material.map.repeat.set(200, 200);
 
     ground = new Physijs.BoxMesh(
@@ -122,6 +130,10 @@ function makeGround() {
     scene.add(ground);
 }
 
+/**********************************************************************
+ * Make Projectile
+ * - Build, position, and texture the projectile
+ *********************************************************************/ 
 function makeProjectile() {
     var image = loader.load('images/' + (1 ? 'crate.jpg' : 'canada.jpg'));
     if (!box) {
@@ -162,6 +174,10 @@ function makeProjectile() {
     }
 }
 
+/**********************************************************************
+ * Make Target
+ * - Creates a target for the projectile to hit 
+ *********************************************************************/ 
 function makeTarget() {
     var image = loader.load('images/customTarget.jpeg');
     target = new Physijs.BoxMesh(
@@ -176,6 +192,7 @@ function makeTarget() {
     target.castShadow = true;
     scene.add(target);
 
+    // Have it react to a collision
     target.addEventListener(
         'collision',
         function(other_obj, rel_vel, rel_rot, contact_normal) {
@@ -185,6 +202,8 @@ function makeTarget() {
 		numWins++;
 
                 target.__dirtyPosition = true;
+
+		// Move the target to a new location based on the level
                 if (level == 2) {
                     target.position.x = 20 * TD_SCALE;
                     target.position.z = 70 * TD_SCALE;
@@ -225,6 +244,7 @@ function makeTarget() {
                         setAltitude(79.07);
                     }
                 }
+		// After the 5th level is complete, move the target to a random position each time
                 else {
                     var newX = 10 + Math.floor(Math.random() * 30);
                     var newZ = 10 + Math.floor(Math.random() * 30);
@@ -244,6 +264,7 @@ function makeTarget() {
 
                 }
 
+		// Show unique messages for the first 5 levels 
                 if (level < 6) {
                     showMessage(objectives[level]+'\n\n\n'+instructions[level]);
                 } else {
@@ -255,6 +276,10 @@ function makeTarget() {
     );
 }
 
+/***********************************************************
+ * Make Floor Compass
+ * - Creates a compass on the ground to help orient the user
+ ***********************************************************/ 
 function makeFloorCompass() {
     if (1) { // the cool pirate compass
         var image = loader.load('images/grassArrow.png');
@@ -284,6 +309,10 @@ function makeFloorCompass() {
     scene.add(compass);
 }
 
+/***********************************************************
+ * Make Cannon 
+ * - Creates the cannon with which the user can interact
+ ***********************************************************/ 
 function makeCannon() {
     var track = new THREE.Mesh(
         new THREE.CylinderGeometry(10.1, 10.1, 8.2, 32),
@@ -348,11 +377,16 @@ function makeCannon() {
     scene.add(fixedBox);
 }
 
+/***********************************************************
+ * Rand
+ * - Simplified random number generator
+ ***********************************************************/ 
 function rand(min, max, interval) {
     if (typeof(interval) === 'undefined') interval = 1;
     var r = Math.floor(Math.random() * (max - min + interval) / interval);
     return r * interval + min;
 }
+
 
 function cameraChase(cam, mesh) {
     if (!liveBox) mesh = fixedBox;
@@ -361,6 +395,10 @@ function cameraChase(cam, mesh) {
     cam.lookAt(mesh.position);
 }
 
+/*****************************************************************
+ * Toss Box
+ * - Sends the projectile flying in a random direction and spin
+ *****************************************************************/ 
 function tossBox() {
     box.setAngularVelocity(
             new THREE.Vector3(rand(-7, 7), rand(-7, 7), rand(-7, 7)));
@@ -368,6 +406,10 @@ function tossBox() {
             new THREE.Vector3(rand(-66, 66), rand(32, 123), rand(-66, 66)));
 }
 
+/*****************************************************************
+ * Shoot Box 
+ * - Sends the projectile flying in the direction the cannon is pointing
+ *****************************************************************/ 
 function shootBox() {
     liveBox = true;
     numShots++;
@@ -392,6 +434,10 @@ function updateShadows(light, mesh) {
     dir_light.target = mesh;
 }
 
+/*****************************************************************
+ * Update HUD
+ * - Show the instructions and position of the projectile
+ *****************************************************************/ 
 function updateHUD() {
     var str = 'Use the arrow keys to position cannon and spacebar to ' +
         'shoot.\nPress Esc/M to show or hide the menu.';
@@ -412,6 +458,10 @@ function changeHTML(id, str) {
         .innerHTML = str.replace(/  /g, ' &nbsp;').replace(/\n/g, '<br />');
 }
 
+/*****************************************************************
+ * Handle User Input
+ * - Connects key commands to functions 
+ *****************************************************************/ 
 function handleUserInput() {
     keyboard.update();
 
@@ -454,12 +504,20 @@ function handleUserInput() {
     }
 }
 
+/*****************************************************************
+ * Show Message
+ * - Simple way to add text to the menu screen
+ *****************************************************************/ 
 function showMessage(str) {
     changeHTML('popupP', str);
     document.getElementById('popup').style.display = 'block';
     document.getElementById('popupP').style.display = 'block';
 }
 
+/*************************************
+ * Toggle Message
+ * - Hide or show the menu screen
+ *************************************/ 
 function toggleMessage() {
     if (document.getElementById('popup').style.display == 'none') {
         document.getElementById('popup').style.display = 'block';
@@ -470,6 +528,10 @@ function toggleMessage() {
     }
 }
 
+/*************************************
+ * Make GUI
+ * - Sets up the slider controls menu
+ *************************************/ 
 function makeGUI() {
     // for initializing GUI controls properly - defaults must be set afterward
     box.launchVelocity = 0.1;
@@ -552,6 +614,10 @@ function render() {
     requestAnimationFrame(render);
 }
 
+/*****************************************************************
+ * Pad
+ * - Add more than one space before or after text 
+ *****************************************************************/ 
 function pad(pad, str, padRight) {
     if (typeof str === 'undefined') return pad;
     var length = Math.max(pad.length, str.length);
