@@ -21,12 +21,17 @@ var objectives = [
 
 var instructions = [
 "Press Esc/M to see your first objective.",
-"Azimuth - The angle describing the direction of the cannon like north, south, or somewhere in between.\nAltitude - The angle describing how high the cannon is aiming, between vertical and horizontal.\n\nMath:\ntheta = atan(y/x)\ny = north/south distance to the target\nx = east/west distance to the target\n\n*theta is the azimuth angle\n\nPress Esc/M to show or hide this text.",
-"Instructions:\n- Set the cannon's altitude to 30 degrees\n- Set the velocity to 28.72 m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n\n y = (y_target - y_cannon) \n*y = north/south distance to the target\n*y_target = y-coordinate of the target ( __, 70 )\n*y_cannon = y-coordinate of the cannon ( __, 50 )\n\nx = (x_target - x_cannon)\n*x = west/east distance to the target\n*x_target = x-coordinate of the target ( 100, __ )\n*x_cannon = x-coordinate of the cannon ( 30, __ )\n\ntheta = atan(y/x)\n*theta = azimuth angle",
+"Azimuth - The angle describing the direction of the cannon like north, south, or somewhere in between.\nAltitude - The angle describing how high the cannon is aiming, between vertical and horizontal.\n\n<img src=\"images/Equation1.gif\">\n Press Esc/M to show or hide this text.",
+//"Azimuth - The angle describing the direction of the cannon like north, south, or somewhere in between.\nAltitude - The angle describing how high the cannon is aiming, between vertical and horizontal.\n\nMath:\ntheta = atan(y/x)\ny = north/south distance to the target\nx = east/west distance to the target\n\n*theta is the azimuth angle\n\nPress Esc/M to show or hide this text.",
+//"Instructions:\n- Set the cannon's altitude to 30 degrees\n- Set the velocity to 28.72 m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n\n y = (y_target - y_cannon) \n*y = north/south distance to the target\n*y_target = y-coordinate of the target ( __, 70 )\n*y_cannon = y-coordinate of the cannon ( __, 50 )\n\nx = (x_target - x_cannon)\n*x = west/east distance to the target\n*x_target = x-coordinate of the target ( 100, __ )\n*x_cannon = x-coordinate of the cannon ( 30, __ )\n\ntheta = atan(y/x)\n*theta = azimuth angle",
+"Instructions:\n- Set the cannon's altitude to 30 degrees\n- Set the velocity to 28.72 m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n\n <img src=\"images/Equation2.gif\">",
 //"Instructions:\n- Calculate the azimuth angle\n- Calculate the launch velocity\n\ntheta = atan(y/x)\n*theta = azimuth angle\n\nFirst Calculate the distance (d) between the target and cannon:\n d = sqrt( x^2 + y^2 )\n\nTo find the launch velocity use the following equation:\n  V = d/(cos(altitude)*sqrt((d*tan(altitude))/(-g/2)))\n *d = distance from the cannon to the target\n *g = acceleration due to gravity (-9.8 m/s^2)",
 "Instructions:\n- Calculate the azimuth angle\n- Calculate the launch velocity\n\n<img src=\"images/Equation3.gif\">",
-"Physics:\nCalculate theta with the equation\n\nd = v * cos(theta) * t\n*v = velocity of the projectile when launched\n*theta = altitude angle of the cannon\n*d = horizontal distance from the cannon to the target \n*t = time that passes from launch until collision.",
-"Physics:\nCalculate theta with the equation\n\n(g/2) * t^2 + v * sin(theta) * t = h\n *t = time the projectile is in the air.\n *h = height of the target from the ground\n *v = launch velocity\n *g = acceleration due to gravity (-9.8 m/s^2)"
+//"Physics:\nCalculate theta with the equation\n\nd = v * cos(theta) * t\n*v = velocity of the projectile when launched\n*theta = altitude angle of the cannon\n*d = horizontal distance from the cannon to the target \n*t = time that passes from launch until collision.",
+"<img src=\"images/Equation4.gif\">",
+//"Physics:\nCalculate theta with the equation\n\n(g/2) * t^2 + v * sin(theta) * t = h\n *t = time the projectile is in the air.\n *h = height of the target from the ground\n *v = launch velocity\n *g = acceleration due to gravity (-9.8 m/s^2)"
+"<img src=\"images/Equation5.gif\">"
+
 ];
 
 function initScene() {
