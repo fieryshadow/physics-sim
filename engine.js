@@ -3,13 +3,19 @@
 Physijs.scripts.worker = 'js/physijs_worker.js';
 
 var renderer, scene, camera, am_light, dir_light, loader, ground,
-    barrelV, barrelH, cannon, box, target, gui, keyboard, controls, orbCam;
+    barrelV, barrelH, cannon, box, target, gui, keyboard, controls,
+    orbCam, fixedBox;
 var realisticFactor = 10;
 var GAME_RUNNING = true;
-var level = 0; 
 var TD_SCALE = 10;  //The target distance scale
 var autoWin = true;
+
 var numWins = 0;
+var numShots = 0;
+
+var liveBox = false;
+var level = 0;
+
 
 var objectives = [
 "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
@@ -123,21 +129,42 @@ function makeGround() {
 
 function makeProjectile() {
     var image = loader.load('images/' + (1 ? 'crate.jpg' : 'canada.jpg'));
-    box = new Physijs.BoxMesh(
-        new THREE.CubeGeometry(4, 4, 4),
-        new THREE.MeshLambertMaterial({ map: image }),
-        //new THREE.MeshLambertMaterial({ color: 0x888888 }),
-        55, // mass
-        { restitution: .9, friction: .9 }
-    );
-    box.position.y = 2; // prop it on top of the ground
-    box.receiveShadow = true;
-    box.castShadow = true;
-    box.the_projectile = true;
-    box.size = box.geometry.parameters.height;
-    box.launchVelocity = 0;
-    scene.add(box);
-    dir_light.target = box; // allows us to always render shadows around box
+    if (!box) {
+        box = new Physijs.BoxMesh(
+            new THREE.CubeGeometry(4, 4, 4),
+            new THREE.MeshLambertMaterial({ map: image }),
+            //new THREE.MeshLambertMaterial({ color: 0x888888 }),
+            55, // mass
+            { restitution: .9, friction: .9 }
+        );
+        box.position.y = 2; // prop it on top of the ground
+        box.receiveShadow = true;
+        box.castShadow = true;
+        box.the_projectile = true;
+        box.size = box.geometry.parameters.height;
+        box.launchVelocity = 0;
+        scene.add(box);
+        dir_light.target = box; // allows us to always render shadows around box
+    } else { // hacky clone
+        var shadowBox = new Physijs.BoxMesh(
+            new THREE.CubeGeometry(4, 4, 4),
+            new THREE.MeshLambertMaterial({ map: image }),
+            //new THREE.MeshLambertMaterial({ color: 0x888888 }),
+            55, // mass
+            { restitution: .9, friction: .9 }
+        );
+        shadowBox.position.set(box.position.x, box.position.y, box.position.z);
+        shadowBox.rotation.set(box.rotation.x, box.rotation.y, box.rotation.z);
+        shadowBox.setLinearVelocity(box.getLinearVelocity());
+        shadowBox.setAngularVelocity(box.getAngularVelocity());
+        shadowBox.receiveShadow = true;
+        shadowBox.castShadow = true;
+        box.position.set(0, 2, 0);
+        box.rotation.set(0, 0, 0);
+        box.setLinearVelocity(new THREE.Vector3(0, 0, 0));
+        box.setAngularVelocity(new THREE.Vector3(0, 0, 0));
+        scene.add(shadowBox);
+    }
 }
 
 function makeTarget() {
@@ -157,7 +184,7 @@ function makeTarget() {
     target.addEventListener(
         'collision',
         function(other_obj, rel_vel, rel_rot, contact_normal) {
-            if (other_obj.the_projectile) {
+/*            if (other_obj.the_projectile) {  		// My section of merge conflict? - Jonny 
                 other_obj.position.set(0, 8, 0) ;
                 cameraChase(camera, other_obj);
 		if(level == 0){
@@ -168,54 +195,54 @@ function makeTarget() {
 
                 box.__dirtyPosition = true;
                 box.position.set(0, 8, 0);
+*/
+            if (other_obj.the_projectile && liveBox) {
+                if (level == 0) return;
+                level++;
+		numWins++;
 
                 target.__dirtyPosition = true;
                 if (level == 2) {
                     target.position.x = 20 * TD_SCALE;
                     target.position.z = 70 * TD_SCALE;
                     target.position.y = 0 * TD_SCALE;
-			
-	  	  if (autoWin == true) {
-		    box.launchVelocity = 28.72;
-		    setAzimuth(15.95);
-		    setAltitude(30); }
-
+                    if (autoWin) {
+                        box.launchVelocity = 28.72;
+                        setAzimuth(15.95);
+                        setAltitude(30);
+                    }
                 }
                 else if (level == 3) {
                     target.position.x = 58 * TD_SCALE;
                     target.position.z = 30 *TD_SCALE;
                     target.position.y = 0 * TD_SCALE;
-
-	  	  if (autoWin == true) {
-		    box.launchVelocity = 27.19;
-		    setAzimuth(62.65);
-		    setAltitude(60);
-		  }
+                    if (autoWin) {
+                        box.launchVelocity = 27.19;
+                        setAzimuth(62.65);
+                        setAltitude(60);
+                    }
                 }
                 else if (level == 4) {
                     target.position.x = 33.642 * TD_SCALE;
                     target.position.z = 31.372 * TD_SCALE;
                     target.position.y = 0 * TD_SCALE;
-
-	  	  if (autoWin == true) {
-		    box.launchVelocity = 25;
-		    setAzimuth(47);
-		    setAltitude(66.92);
-		  }
-
+                    if (autoWin) {
+                        box.launchVelocity = 25;
+                        setAzimuth(47);
+                        setAltitude(66.92);
+                    }
                 }
                 else if (level == 5) {
                     target.position.x = 16.821 * TD_SCALE;
                     target.position.z = 15.686 * TD_SCALE;
                     target.position.y = 20 * TD_SCALE;
-
-	  	  if (autoWin == true) {
-		    box.launchVelocity = 27;
-		    setAzimuth(47);
-		    setAltitude(79.07);
-		  }
-
+                    if (autoWin) {
+                        box.launchVelocity = 27;
+                        setAzimuth(47);
+                        setAltitude(79.07);
+                    }
                 }
+//<<<<<<< HEAD
 		else {
 		    var newX = 10 + Math.floor(Math.random() * 30);
 		    var newZ = 10 + Math.floor(Math.random() * 30);
@@ -228,7 +255,7 @@ function makeTarget() {
                     target.position.z = newZ * TD_SCALE;
                     target.position.y = newY * TD_SCALE;
 //		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\nd = " + d + "\nazimuth = " + azi;
-		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\n\nTargets Hit: " + numWins; 
+		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\nShots taken: " + numShots + "\nTargets Hit: " + numWins; 
 
 	  	  if (autoWin == true) {
 		    setAzimuth(azi);
@@ -241,6 +268,24 @@ function makeTarget() {
 		} else {
 		   showMessage(objectives[6]+'\n\n\n'+instructions[6]);	
 		}
+//=======
+/*                else {
+                    showMessage('Congratulations, you won!');
+                    target.position.x = 80 * TD_SCALE; // North
+                    target.position.z = 60 * TD_SCALE; // East
+                    target.position.y = 0 * TD_SCALE;
+                    GAME_RUNNING = false;
+                    level = 0;
+                    if (autoWin) {
+                        box.launchVelocity = 31.32;
+                        setAzimuth(53.13);
+                        setAltitude(45);
+                    }
+                    return;
+                }
+                showMessage(objectives[level]+'\n\n\n'+instructions[level]);
+*/
+//>>>>>>> 237fb008fd17e59d7cc6c3519d37ee4273483d7c
                 GAME_RUNNING = false;
             }
         }
@@ -330,6 +375,14 @@ function makeCannon() {
     cannon.add(barrelH);
     cannon.add(dome);
     scene.add(cannon);
+
+    // point for camera to rotate around
+    fixedBox = new THREE.Mesh(
+        new THREE.CubeGeometry(4, 4, 4),
+        new THREE.MeshLambertMaterial({ color: 0x000000 }) // can't see it
+    );
+    fixedBox.position.set(0, 8, 0);
+    scene.add(fixedBox);
 }
 
 function rand(min, max, interval) {
@@ -339,6 +392,7 @@ function rand(min, max, interval) {
 }
 
 function cameraChase(cam, mesh) {
+    if (!liveBox) mesh = fixedBox;
     var cameraOffset = orbCam.position.clone().add(mesh.position);
     cam.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
     cam.lookAt(mesh.position);
@@ -352,7 +406,9 @@ function tossBox() {
 }
 
 function shootBox() {
-    GAME_RUNNING = true;
+    liveBox = true;
+    numShots++;
+    makeProjectile();
     box.position.set(0, 8, 0);
     box.setAngularVelocity(
             new THREE.Vector3(rand(-7, 7), rand(-7, 7), rand(-7, 7)));
@@ -366,9 +422,11 @@ function shootBox() {
 }
 
 function updateShadows(light, mesh) {
+    if (!liveBox) mesh = fixedBox;
     var relativeOffset = new THREE.Vector3(200, 300, -50);
     var newPos = relativeOffset.add(mesh.position);
     light.position.set(newPos.x, newPos.y, newPos.z);
+    dir_light.target = mesh;
 }
 
 function updateHUD() {
@@ -407,9 +465,15 @@ function handleUserInput() {
         addAzimuth(-1.5);
     }
 
-    if (keyboard.pressed('space')) {
+//<<<<<<< HEAD
+/*    if (keyboard.pressed('space')) {
         shootBox();
-	
+*/	
+//=======
+    if (keyboard.down('space')) {
+        liveBox = !liveBox;
+        if (liveBox) shootBox();
+//>>>>>>> 237fb008fd17e59d7cc6c3519d37ee4273483d7c
     }
 
     if (keyboard.pressed('pagedown')) {
@@ -420,6 +484,10 @@ function handleUserInput() {
     }
 
     if (keyboard.down('esc') || keyboard.down('M')) {
+        if (!GAME_RUNNING) {
+            GAME_RUNNING = true;
+            liveBox = false;
+        }
         if (level == 0) {
             level = 1;
             showMessage(objectives[level]+'\n\n\n'+instructions[level]);
@@ -473,11 +541,9 @@ function refreshGUI() {
 
 function setDefaults() {
     box.launchVelocity = 31.32;
-    if(autoWin == true) {
-    	setAzimuth(53.13); }
-    else {
-	setAzimuth(60); }
-
+    if (autoWin)
+        setAzimuth(53.13);
+    else setAzimuth(60);
     setAltitude(45);
 }
 
