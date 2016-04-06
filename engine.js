@@ -30,14 +30,9 @@ var objectives = [
 var instructions = [
 "Press Esc/M to see your first objective.",
 "Azimuth - The angle describing the direction of the cannon like north, south, or somewhere in between.\nAltitude - The angle describing how high the cannon is aiming, between vertical and horizontal.\n\n<img src=\"images/Equation1.gif\">\n Press Esc/M to show or hide this text.",
-//"Azimuth - The angle describing the direction of the cannon like north, south, or somewhere in between.\nAltitude - The angle describing how high the cannon is aiming, between vertical and horizontal.\n\nMath:\ntheta = atan(y/x)\ny = north/south distance to the target\nx = east/west distance to the target\n\n*theta is the azimuth angle\n\nPress Esc/M to show or hide this text.",
-//"Instructions:\n- Set the cannon's altitude to 30 degrees\n- Set the velocity to 28.72 m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n\n y = (y_target - y_cannon) \n*y = north/south distance to the target\n*y_target = y-coordinate of the target ( __, 70 )\n*y_cannon = y-coordinate of the cannon ( __, 50 )\n\nx = (x_target - x_cannon)\n*x = west/east distance to the target\n*x_target = x-coordinate of the target ( 100, __ )\n*x_cannon = x-coordinate of the cannon ( 30, __ )\n\ntheta = atan(y/x)\n*theta = azimuth angle",
 "Instructions:\n- Set the cannon's altitude to 30 degrees\n- Set the velocity to 28.72 m/s\n- Calculate the azimuth angle needed for the projectile to hit the target\n\n <img src=\"images/Equation2.gif\">",
-//"Instructions:\n- Calculate the azimuth angle\n- Calculate the launch velocity\n\ntheta = atan(y/x)\n*theta = azimuth angle\n\nFirst Calculate the distance (d) between the target and cannon:\n d = sqrt( x^2 + y^2 )\n\nTo find the launch velocity use the following equation:\n  V = d/(cos(altitude)*sqrt((d*tan(altitude))/(-g/2)))\n *d = distance from the cannon to the target\n *g = acceleration due to gravity (-9.8 m/s^2)",
 "Instructions:\n- Calculate the azimuth angle\n- Calculate the launch velocity\n\n<img src=\"images/Equation3.gif\">",
-//"Physics:\nCalculate theta with the equation\n\nd = v * cos(theta) * t\n*v = velocity of the projectile when launched\n*theta = altitude angle of the cannon\n*d = horizontal distance from the cannon to the target \n*t = time that passes from launch until collision.",
 "<img src=\"images/Equation4.gif\">",
-//"Physics:\nCalculate theta with the equation\n\n(g/2) * t^2 + v * sin(theta) * t = h\n *t = time the projectile is in the air.\n *h = height of the target from the ground\n *v = launch velocity\n *g = acceleration due to gravity (-9.8 m/s^2)"
 "<img src=\"images/Equation5.gif\">",
 "<img src=\"images/Equation6.gif\">"
 ];
@@ -110,7 +105,7 @@ function makeGround() {
     var material = Physijs.createMaterial(
         new THREE.MeshLambertMaterial({ map: image }),
         .9, // high friction .9
-        .2 // low restitution 
+        .2 // low restitution
     );
     material.map.wrapS = material.map.wrapT = THREE.RepeatWrapping;
 //    material.map.repeat.set(70, 70);
@@ -184,18 +179,6 @@ function makeTarget() {
     target.addEventListener(
         'collision',
         function(other_obj, rel_vel, rel_rot, contact_normal) {
-/*            if (other_obj.the_projectile) {  		// My section of merge conflict? - Jonny 
-                other_obj.position.set(0, 8, 0) ;
-                cameraChase(camera, other_obj);
-		if(level == 0){
-			return ;
-		}
-                level++;
-		numWins++;
-
-                box.__dirtyPosition = true;
-                box.position.set(0, 8, 0);
-*/
             if (other_obj.the_projectile && liveBox) {
                 if (level == 0) return;
                 level++;
@@ -242,50 +225,30 @@ function makeTarget() {
                         setAltitude(79.07);
                     }
                 }
-//<<<<<<< HEAD
-		else {
-		    var newX = 10 + Math.floor(Math.random() * 30);
-		    var newZ = 10 + Math.floor(Math.random() * 30);
-		    var newY = 0 + Math.floor(Math.random() * 20); 
+                else {
+                    var newX = 10 + Math.floor(Math.random() * 30);
+                    var newZ = 10 + Math.floor(Math.random() * 30);
+                    var newY = 0 + Math.floor(Math.random() * 20);
 
-		    var d = Math.sqrt(newX * newX + newZ * newZ); 
-		    var azi = Math.atan(newX/newZ)*180/3.14;
+                    var d = Math.sqrt(newX * newX + newZ * newZ);
+                    var azi = Math.atan(newX/newZ)*180/3.14;
 
                     target.position.x = newX * TD_SCALE;
                     target.position.z = newZ * TD_SCALE;
                     target.position.y = newY * TD_SCALE;
-//		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\nd = " + d + "\nazimuth = " + azi;
-		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\nShots taken: " + numShots + "\nTargets Hit: " + numWins; 
+                    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\nShots taken: " + numShots + "\nTargets Hit: " + numWins;
 
-	  	  if (autoWin == true) {
-		    setAzimuth(azi);
-		  }	
-
-                }
-
-		if (level < 6) {
-	           showMessage(objectives[level]+'\n\n\n'+instructions[level]);	
-		} else {
-		   showMessage(objectives[6]+'\n\n\n'+instructions[6]);	
-		}
-//=======
-/*                else {
-                    showMessage('Congratulations, you won!');
-                    target.position.x = 80 * TD_SCALE; // North
-                    target.position.z = 60 * TD_SCALE; // East
-                    target.position.y = 0 * TD_SCALE;
-                    GAME_RUNNING = false;
-                    level = 0;
-                    if (autoWin) {
-                        box.launchVelocity = 31.32;
-                        setAzimuth(53.13);
-                        setAltitude(45);
+                    if (autoWin == true) {
+                        setAzimuth(azi);
                     }
-                    return;
+
                 }
-                showMessage(objectives[level]+'\n\n\n'+instructions[level]);
-*/
-//>>>>>>> 237fb008fd17e59d7cc6c3519d37ee4273483d7c
+
+                if (level < 6) {
+                    showMessage(objectives[level]+'\n\n\n'+instructions[level]);
+                } else {
+                    showMessage(objectives[6]+'\n\n\n'+instructions[6]);
+                }
                 GAME_RUNNING = false;
             }
         }
@@ -465,15 +428,9 @@ function handleUserInput() {
         addAzimuth(-1.5);
     }
 
-//<<<<<<< HEAD
-/*    if (keyboard.pressed('space')) {
-        shootBox();
-*/	
-//=======
     if (keyboard.down('space')) {
         liveBox = !liveBox;
         if (liveBox) shootBox();
-//>>>>>>> 237fb008fd17e59d7cc6c3519d37ee4273483d7c
     }
 
     if (keyboard.pressed('pagedown')) {
