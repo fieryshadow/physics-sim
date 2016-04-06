@@ -9,6 +9,7 @@ var GAME_RUNNING = true;
 var level = 0; 
 var TD_SCALE = 10;  //The target distance scale
 var autoWin = true;
+var numWins = 0;
 
 var objectives = [
 "Ready to learn some Physics?\nIn addition to using the arrow keys to orient the cannon, you can input specific values in the control bar in the top-right corner of your screen. This will be useful for completing some of the objectives.",
@@ -16,7 +17,8 @@ var objectives = [
 "2. Think of the map as a grid, the cannon is at the position (30, 50) and the target is at position (100, 70). Set the altitude of the cannon to 30 degrees and set the velocity to 28.72 m/s to shoot the correct distance. Use the math to figure out the azimuth angle needed to hit the target.",
 "3. Think of the map as a grid, the cannon is at the position (100, 12) and the target is at position (130, 70). Set the altitude of the cannon to 60 degrees to shoot the correct distance. Figure out the azimuth angle needed to hit the target, and calculate the launch velocity.",
 "4. The target is located 46 meters from the cannon in a direction of 47 degrees (Azimuth). Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 25 m/s and it is in the air for 4.7 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees, to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target",
-"5. The target is located 23 meters horizontally from the cannon in a direction of 47 degrees (Azimuth), at a height of 20 meters. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 27 m/s and it is in the air for 4.5 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target"
+"5. The target is located 23 meters horizontally from the cannon in a direction of 47 degrees (Azimuth), at a height of 20 meters. Adjust the altitude angle of the cannon in order to shoot the projectile onto the target. (The cannon launches the projectile at a velocity of 27 m/s and it is in the air for 4.5 seconds)\n\nInstructions:\n- Set the azimuth of the cannon to 47 degrees to aim at the target\n- Calculate the altitude angle needed for the projectile to hit the target",
+"To be modified"
 ];
 
 var instructions = [
@@ -30,8 +32,8 @@ var instructions = [
 //"Physics:\nCalculate theta with the equation\n\nd = v * cos(theta) * t\n*v = velocity of the projectile when launched\n*theta = altitude angle of the cannon\n*d = horizontal distance from the cannon to the target \n*t = time that passes from launch until collision.",
 "<img src=\"images/Equation4.gif\">",
 //"Physics:\nCalculate theta with the equation\n\n(g/2) * t^2 + v * sin(theta) * t = h\n *t = time the projectile is in the air.\n *h = height of the target from the ground\n *v = launch velocity\n *g = acceleration due to gravity (-9.8 m/s^2)"
-"<img src=\"images/Equation5.gif\">"
-
+"<img src=\"images/Equation5.gif\">",
+"<img src=\"images/Equation6.gif\">"
 ];
 
 function initScene() {
@@ -101,11 +103,12 @@ function makeGround() {
     var image = loader.load('images/' + (1 ? 'grass.png' : 'comeau.jpg'));
     var material = Physijs.createMaterial(
         new THREE.MeshLambertMaterial({ map: image }),
-        .9, // high friction
-        .2 // low restitution
+        .9, // high friction .9
+        .2 // low restitution 
     );
     material.map.wrapS = material.map.wrapT = THREE.RepeatWrapping;
-    material.map.repeat.set(70, 70);
+//    material.map.repeat.set(70, 70);
+    material.map.repeat.set(200, 200);
 
     ground = new Physijs.BoxMesh(
         new THREE.BoxGeometry(4000, 40, 4000),
@@ -158,9 +161,10 @@ function makeTarget() {
                 other_obj.position.set(0, 8, 0) ;
                 cameraChase(camera, other_obj);
 		if(level == 0){
-			returnm ;
+			return ;
 		}
                 level++;
+		numWins++;
 
                 box.__dirtyPosition = true;
                 box.position.set(0, 8, 0);
@@ -212,23 +216,31 @@ function makeTarget() {
 		  }
 
                 }
-                else {
-                    showMessage('Congratulations, you won!');
-                    target.position.x = 80 * TD_SCALE; // North
-                    target.position.z = 60 * TD_SCALE; // East
-                    target.position.y = 0 * TD_SCALE;
-                    GAME_RUNNING = false;
-                    level = 0;
+		else {
+		    var newX = 10 + Math.floor(Math.random() * 30);
+		    var newZ = 10 + Math.floor(Math.random() * 30);
+		    var newY = 0 + Math.floor(Math.random() * 20); 
+
+		    var d = Math.sqrt(newX * newX + newZ * newZ); 
+		    var azi = Math.atan(newX/newZ)*180/3.14;
+
+                    target.position.x = newX * TD_SCALE;
+                    target.position.z = newZ * TD_SCALE;
+                    target.position.y = newY * TD_SCALE;
+//		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\nd = " + d + "\nazimuth = " + azi;
+		    objectives[6] = "Training completed.\nFrom now on just shoot for a high score. The rest will have to be solved using system of equations. Use 33 for the launch velocity \n\nThe target is " + newX + " meters to the north, " + newZ + " meters to the east, and at a height of " + newY + " meters.\n\nTargets Hit: " + numWins; 
 
 	  	  if (autoWin == true) {
-		    box.launchVelocity = 31.32;
-		    setAzimuth(53.13);
-		    setAltitude(45);
-		  }
-                    return;
+		    setAzimuth(azi);
+		  }	
+
                 }
 
-                showMessage(objectives[level]+'\n\n\n'+instructions[level]);
+		if (level < 6) {
+	           showMessage(objectives[level]+'\n\n\n'+instructions[level]);	
+		} else {
+		   showMessage(objectives[6]+'\n\n\n'+instructions[6]);	
+		}
                 GAME_RUNNING = false;
             }
         }
@@ -397,6 +409,7 @@ function handleUserInput() {
 
     if (keyboard.pressed('space')) {
         shootBox();
+	
     }
 
     if (keyboard.pressed('pagedown')) {
